@@ -1,0 +1,1119 @@
+{% extends "base.html" %}
+
+{% block title %}Secure Checkout & Cloud Activation | {{ brand_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <!-- Header Title -->
+    <div class="mb-8">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold uppercase tracking-wider mb-2">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+            <span>256-Bit SSL Encrypted & RBI Compliant</span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Complete Your Hosting Order</h1>
+        <p class="text-xs sm:text-sm text-slate-500 mt-1">Instant automated cloud server activation. Backed by our 30-day money-back guarantee.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- ================= LEFT COLUMN: PLAN, DOMAIN & ACCOUNT (7 Cols) ================= -->
+        <div class="lg:col-span-7 space-y-6">
+            
+            <!-- CARD 1: HOSTINGCART PLAN SELECTOR -->
+            <div class="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200 shadow-sm">
+                <div class="flex items-center justify-between mb-5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                            <i data-lucide="server" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-black text-slate-900">{{ plan.name }}</h3>
+                            <span class="text-xs text-slate-500">Ultra-Fast NVMe SSD &bull; India Cloud Node</span>
+                        </div>
+                    </div>
+                    <span class="text-xs font-black px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        Active Selection
+                    </span>
+                </div>
+
+                <!-- Billing Cycle Options -->
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-slate-700 mb-2">Choose Billing Cycle</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <!-- 48 Months (Best Value) -->
+                        <label class="relative flex flex-col p-4 rounded-2xl border-2 border-blue-600 bg-blue-50/50 cursor-pointer transition cycle-card" id="card-cycle-48m">
+                            <input type="radio" name="billing_cycle" value="48m" class="hidden" {% if cycle == '48m' %}checked{% endif %} onchange="onPeriodChange('48m')">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-xs font-black text-blue-700">48 Months</span>
+                                <span class="text-[10px] font-black bg-emerald-600 text-white px-1.5 py-0.5 rounded uppercase">Save 75%</span>
+                            </div>
+                            <div class="flex items-baseline gap-1 mt-1">
+                                <span class="text-xs text-slate-400 line-through font-mono">₹{{ plan.price_monthly * 2 }}</span>
+                                <span class="text-base font-black text-slate-900 font-mono">₹{{ (plan.price_48m / 48)|round|int }}/mo</span>
+                            </div>
+                            <span class="text-[10px] text-slate-500 mt-2">Total ₹{{ plan.price_48m }} for 4 years</span>
+                        </label>
+
+                        <!-- 12 Months -->
+                        <label class="relative flex flex-col p-4 rounded-2xl border border-slate-200 bg-white hover:border-blue-600 cursor-pointer transition cycle-card" id="card-cycle-yearly">
+                            <input type="radio" name="billing_cycle" value="yearly" class="hidden" {% if cycle == 'yearly' %}checked{% endif %} onchange="onPeriodChange('yearly')">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-xs font-black text-slate-900">12 Months</span>
+                                <span class="text-[10px] font-bold bg-orange-100 text-orange-800 px-1.5 py-0.5 rounded">Free Domain</span>
+                            </div>
+                            <div class="flex items-baseline gap-1 mt-1">
+                                <span class="text-xs text-slate-400 line-through font-mono">₹{{ plan.price_monthly * 2 }}</span>
+                                <span class="text-base font-black text-slate-900 font-mono">₹{{ (plan.price_yearly / 12)|round|int }}/mo</span>
+                            </div>
+                            <span class="text-[10px] text-slate-500 mt-2">Total ₹{{ plan.price_yearly }} for 1 year</span>
+                        </label>
+
+                        <!-- 1 Month -->
+                        <label class="relative flex flex-col p-4 rounded-2xl border border-slate-200 bg-white hover:border-blue-600 cursor-pointer transition cycle-card" id="card-cycle-monthly">
+                            <input type="radio" name="billing_cycle" value="monthly" class="hidden" {% if cycle == 'monthly' %}checked{% endif %} onchange="onPeriodChange('monthly')">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-xs font-black text-slate-900">1 Month</span>
+                                <span class="text-[10px] font-semibold text-slate-400">Monthly</span>
+                            </div>
+                            <div class="flex items-baseline gap-1 mt-1">
+                                <span class="text-base font-black text-slate-900 font-mono">₹{{ plan.price_monthly }}/mo</span>
+                            </div>
+                            <span class="text-[10px] text-slate-500 mt-2">Billed monthly</span>
+                        </label>
+                    </div>
+                    <div id="plan-renewal-note" class="text-[11px] text-slate-500 mt-2 font-medium"></div>
+                </div>
+
+                <!-- Hostinger-Style Deal Switcher Banner (Shown on 1-Month Plan selection) -->
+                <div id="switch-deal-banner" class="hidden p-4 rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-blue-950 text-white flex items-center justify-between gap-3 mb-4 shadow-md border border-blue-900/40">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-black text-sm flex-shrink-0">
+                            %
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold block text-white">Switch to a 12 or 48-month plan for the biggest savings & FREE Domain!</span>
+                            <span class="text-[10px] text-slate-300">1st Year Domain Registration is 100% FREE on 12M and 48M billing.</span>
+                        </div>
+                    </div>
+                    <button type="button" onclick="onPeriodChange('yearly')" class="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-950 font-black text-xs rounded-xl transition flex-shrink-0 shadow-sm">
+                        Get Deal &rarr;
+                    </button>
+                </div>
+
+                <!-- Inclusions Checklist -->
+                <div class="space-y-2 border-t border-slate-100 pt-4 text-xs font-semibold text-slate-700">
+                    <!-- Dynamic Domain Bullet Line (Hostinger Style) -->
+                    <div class="flex items-center gap-2" id="inclusion-domain-line">
+                        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                        <span>Domain name is <strong class="text-emerald-700">100% FREE for 1 Year</strong> with annual or multi-year billing.</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                        <span><strong class="text-emerald-700">Free Wildcard SSL</strong> automatically provisioned & renewed.</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                        <span>Automated 1-Click WordPress & Fast Web Hosting Control Panel.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD 2: DOMAIN REGISTRATION & CONFIGURATION -->
+            <div class="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center">
+                            <i data-lucide="globe" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="text-base font-black text-slate-900 font-mono" id="display-domain">{{ domain }}</div>
+                            <span class="text-xs text-slate-500">Primary Domain</span>
+                        </div>
+                    </div>
+                    <button type="button" onclick="editDomainName()" class="text-xs font-bold text-blue-600 hover:text-blue-800 transition flex items-center gap-1">
+                        <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                        <span>Change Domain</span>
+                    </button>
+                </div>
+
+                <!-- Editable Domain Input -->
+                <div id="domain-edit-box" class="hidden mb-4 p-3 bg-slate-50 rounded-2xl border border-slate-200">
+                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Update Target Domain</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="checkout-domain" value="{{ domain }}" class="flex-grow px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-mono font-bold text-slate-900 focus:border-blue-600 focus:outline-none">
+                        <button type="button" onclick="saveEditedDomain()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition">Save</button>
+                    </div>
+                </div>
+
+                <!-- Hostinger Alert: When Domain is NOT Free (1-month plan or Single Starter) -->
+                <div id="domain-nonfree-notice" class="hidden p-3.5 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-between text-xs text-amber-950 font-semibold mb-4">
+                    <!-- Injected dynamically via JavaScript -->
+                </div>
+
+                <!-- Free Domain Callout (Only on 12M / 48M eligible plans) -->
+                <div id="domain-free-callout" class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center gap-2.5 text-xs text-emerald-900 font-semibold mb-4">
+                    <span class="text-base">🎉</span>
+                    <span><strong>1st Year is FREE</strong> with this plan, then renews at standard registrar rates. Cancel anytime.</span>
+                </div>
+
+                <!-- Domain Option Selector: Shown only when domain is NOT free -->
+                <div id="domain-action-box" class="hidden space-y-2.5 mb-4">
+                    <span class="text-[11px] font-bold text-slate-600 block uppercase tracking-wider">Choose Domain Action</span>
+                    <label class="flex items-center justify-between p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-blue-600 cursor-pointer transition text-xs">
+                        <div class="flex items-center gap-2.5">
+                            <input type="radio" name="domain_action_choice" value="register" checked onchange="onDomainActionChange('register')" class="text-blue-600">
+                            <div>
+                                <strong class="text-slate-900 block font-bold">Register new domain via HostingCart</strong>
+                                <span class="text-slate-500 text-[11px]">Instant wholesale DNS & registrar setup</span>
+                            </div>
+                        </div>
+                        <span class="font-mono font-bold text-slate-900 text-xs" id="display-domain-fee">₹799.00/yr</span>
+                    </label>
+                    <label class="flex items-center justify-between p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-blue-600 cursor-pointer transition text-xs">
+                        <div class="flex items-center gap-2.5">
+                            <input type="radio" name="domain_action_choice" value="existing" onchange="onDomainActionChange('existing')" class="text-blue-600">
+                            <div>
+                                <strong class="text-slate-900 block font-bold">I already have a domain / connect later</strong>
+                                <span class="text-slate-500 text-[11px]">Point domain nameservers (ns1.hostingcart.in / ns2.hostingcart.in)</span>
+                            </div>
+                        </div>
+                        <span class="font-mono font-black text-emerald-600 text-xs">FREE</span>
+                    </label>
+                </div>
+
+                <!-- Domain Registration Pricing Line -->
+                <div id="domain-free-badge-box" class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200 mb-3">
+                    <div>
+                        <span class="text-xs font-bold text-slate-900 block">Registration Period</span>
+                        <span class="text-xs text-slate-500">1 Year Global Registrar Setup</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full inline-block mb-0.5">Free with Plan</span>
+                        <div class="flex items-baseline gap-1.5 justify-end">
+                            <span class="text-xs text-slate-400 line-through font-mono">₹1,499</span>
+                            <span class="text-sm font-black text-emerald-600 font-mono">₹0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Optional Domain Shield Addon -->
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <i data-lucide="shield" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-black text-slate-900 block">HostingCart Domain Shield & WHOIS Privacy</span>
+                            <p class="text-[11px] text-slate-500 max-w-sm leading-tight mt-0.5">
+                                Masks your personal phone number, home address & email on public ICANN WHOIS lookup databases to stop telemarketer spam.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="text-right flex-shrink-0 ml-3">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="domain-shield-toggle" class="sr-only peer" onchange="toggleDomainShield(this.checked)">
+                            <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                        <span class="text-[11px] font-bold text-slate-700 block mt-1 font-mono">₹249/yr</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD 3: ACCOUNT INFORMATION (IF GUEST) -->
+            {% if not current_user %}
+                <div class="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i data-lucide="user-check" class="w-5 h-5 text-blue-600"></i>
+                        <h3 class="text-base font-black text-slate-900">Account Credentials (For Control Panel Access)</h3>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Full Name</label>
+                            <input type="text" id="cust-name" placeholder="Pawan Kumar" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:border-blue-600 focus:bg-white focus:outline-none" required>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Email Address</label>
+                            <input type="email" id="cust-email" placeholder="pawan@example.com" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:border-blue-600 focus:bg-white focus:outline-none" required>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">WhatsApp / Phone</label>
+                            <input type="text" id="cust-phone" placeholder="+91 9555838550" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:border-blue-600 focus:bg-white focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Create Password</label>
+                            <input type="password" id="cust-password" placeholder="••••••••••••" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:border-blue-600 focus:bg-white focus:outline-none" required>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- CARD 4: PAYMENT GATEWAY SELECTION -->
+            <div class="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200 shadow-sm">
+                <h3 class="text-base font-black text-slate-900 mb-4 flex items-center gap-2">
+                    <i data-lucide="credit-card" class="w-5 h-5 text-blue-600"></i>
+                    <span>Select Payment Gateway</span>
+                </h3>
+
+                <div class="space-y-3">
+                    <!-- OPTION 1: Direct Instant UPI QR (Zero Fee) -->
+                    <label class="flex items-start justify-between p-4 rounded-2xl bg-blue-50/60 border-2 border-blue-600 cursor-pointer shadow-sm transition method-card" id="card-pay-upi">
+                        <div class="flex items-start gap-3">
+                            <input type="radio" name="payment_method" value="UPI_QR" checked class="mt-1 text-blue-600" onchange="onPaymentMethodChange('UPI_QR')">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-black text-slate-900">Direct Instant UPI QR Code</span>
+                                    <span class="text-[10px] text-emerald-800 font-black bg-emerald-100 px-2 py-0.5 rounded-full uppercase">0% Transaction Fee</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 mt-1">
+                                    Instant scan & pay via Google Pay, PhonePe, Paytm, BHIM, or any bank UPI app. Direct settlement.
+                                </p>
+                            </div>
+                        </div>
+                        <span class="text-xs font-mono font-bold text-blue-700 bg-blue-100 px-2.5 py-1 rounded-lg flex-shrink-0 ml-2">Fastest</span>
+                    </label>
+
+                    <!-- OPTION 2: Razorpay Payment Gateway -->
+                    <label class="flex items-start justify-between p-4 rounded-2xl bg-white border border-slate-200 cursor-pointer hover:border-slate-300 transition method-card" id="card-pay-rzp">
+                        <div class="flex items-start gap-3">
+                            <input type="radio" name="payment_method" value="RAZORPAY" class="mt-1 text-blue-600" onchange="onPaymentMethodChange('RAZORPAY')">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-black text-slate-900">Razorpay Payment Gateway</span>
+                                    <span class="text-[10px] text-blue-800 font-bold bg-blue-50 px-2 py-0.5 rounded-full">RBI Licensed</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 mt-1">
+                                    Pay securely using Debit Cards, Credit Cards (Visa, Mastercard, RuPay), NetBanking (50+ Banks), or EMI.
+                                </p>
+                            </div>
+                        </div>
+                        <i data-lucide="shield-check" class="w-4 h-4 text-slate-400 mt-1 flex-shrink-0 ml-2"></i>
+                    </label>
+
+                    <!-- OPTION 3: Cashfree Gateway -->
+                    <label class="flex items-start justify-between p-4 rounded-2xl bg-white border border-slate-200 cursor-pointer hover:border-slate-300 transition method-card" id="card-pay-cf">
+                        <div class="flex items-start gap-3">
+                            <input type="radio" name="payment_method" value="CASHFREE" class="mt-1 text-blue-600" onchange="onPaymentMethodChange('CASHFREE')">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-black text-slate-900">Cashfree Payments</span>
+                                    <span class="text-[10px] text-purple-800 font-bold bg-purple-50 px-2 py-0.5 rounded-full">Cards & Wallets</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 mt-1">
+                                    Alternative gateway for fast card, wallet, and netbanking transactions.
+                                </p>
+                            </div>
+                        </div>
+                        <i data-lucide="zap" class="w-4 h-4 text-slate-400 mt-1 flex-shrink-0 ml-2"></i>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= RIGHT COLUMN: ORDER SUMMARY (5 Cols) ================= -->
+        <div class="lg:col-span-5 space-y-6">
+            <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xl sticky top-28">
+                <h3 class="text-xl font-black text-slate-900 mb-5">Order Summary</h3>
+
+                {% set initial_subtotal = plan.price_48m if cycle == '48m' else (plan.price_monthly if cycle == 'monthly' else plan.price_yearly) %}
+                {% set initial_surcharge = (initial_subtotal * 0.12)|round(2) %}
+                {% set initial_taxable = initial_subtotal + initial_surcharge %}
+                {% set initial_gst = (initial_taxable * 0.18)|round(2) %}
+                {% set initial_total = (initial_taxable + initial_gst)|round(2) %}
+
+                <!-- Plan Line Item -->
+                <div class="space-y-3 text-xs border-b border-slate-100 pb-4 mb-4">
+                    <div class="flex justify-between items-center text-slate-700">
+                        <div>
+                            <strong class="text-slate-900 block">{{ plan.name }}</strong>
+                            <span class="text-slate-500" id="summary-period-title">{% if cycle == 'monthly' %}1-Month Period{% elif cycle == 'yearly' %}12-Month Period{% else %}48-Month Period{% endif %}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-slate-400 line-through font-mono text-[11px] block" id="summary-regular-plan">₹{{ initial_subtotal * 3 }}</span>
+                            <span class="font-mono font-bold text-slate-900" id="summary-subtotal">₹{{ initial_subtotal }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Domain Line Item -->
+                    <div class="flex justify-between items-center text-slate-700">
+                        <div>
+                            <strong class="text-slate-900 block font-mono font-bold" id="summary-domain-name">{{ domain }}</strong>
+                            <span class="text-slate-500" id="summary-domain-label">Domain Registration (1st Year)</span>
+                        </div>
+                        <div class="text-right" id="summary-domain-price">
+                            <span class="text-slate-400 line-through font-mono text-[11px] block">₹799.00</span>
+                            <span class="font-mono font-black text-emerald-600 uppercase text-[11px]">Free</span>
+                        </div>
+                    </div>
+
+                    <!-- Domain Shield Row (Hidden by default) -->
+                    <div id="shield-summary-row" class="hidden flex justify-between items-center text-slate-700">
+                        <div>
+                            <span class="font-bold text-slate-900 block">Domain Shield & Privacy</span>
+                            <span class="text-slate-500">WHOIS Spam Protection</span>
+                        </div>
+                        <span class="font-mono font-bold text-slate-900">₹249.00</span>
+                    </div>
+
+                    <!-- Infrastructure & Regulatory Surcharge -->
+                    <div class="flex justify-between items-center text-slate-600">
+                        <span class="flex items-center gap-1">
+                            <span>Cloud Infrastructure & Surcharge</span>
+                            <span class="text-[10px] text-slate-400" title="Covers datacenter peering and routing">(12%)</span>
+                        </span>
+                        <span class="font-mono font-semibold" id="summary-surcharge">₹{{ "%.2f"|format(initial_surcharge) }}</span>
+                    </div>
+
+                    <!-- GST 18% -->
+                    <div class="flex justify-between items-center text-slate-600">
+                        <span class="flex items-center gap-1">
+                            <span>Goods & Services Tax (GST)</span>
+                            <span class="text-[10px] text-slate-400">(18%)</span>
+                        </span>
+                        <span class="font-mono font-semibold" id="summary-gst">₹{{ "%.2f"|format(initial_gst) }}</span>
+                    </div>
+
+                    <!-- Coupon Discount Row -->
+                    <div id="summary-discount-row" class="hidden flex justify-between items-center text-emerald-700 font-bold">
+                        <span class="flex items-center gap-1">
+                            <i data-lucide="tag" class="w-3.5 h-3.5 text-emerald-600"></i> <span id="summary-discount-label">Discount Applied</span>
+                        </span>
+                        <span class="font-mono" id="summary-discount-amount">-₹0.00</span>
+                    </div>
+                </div>
+
+                <!-- Total Amount Box -->
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 mb-5">
+                    <div class="flex items-baseline justify-between">
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Due Today</span>
+                        <div class="text-right">
+                            <span class="text-xs text-slate-400 line-through font-mono mr-2" id="summary-strikethrough-total">₹{{ "%.2f"|format(initial_subtotal * 3.2) }}</span>
+                            <span class="text-3xl font-black text-slate-900 font-mono" id="summary-final-total">₹{{ "%.2f"|format(initial_total) }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coupon Input / Chip -->
+                <div class="mb-5">
+                    <div id="coupon-applied-chip" class="hidden flex items-center justify-between p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 mb-2">
+                        <span class="text-xs font-bold text-emerald-800 flex items-center gap-1.5 font-mono">
+                            <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i> Coupon applied: <strong id="chip-coupon-code">{% if active_promo %}{{ active_promo.code }}{% endif %}</strong>
+                        </span>
+                        <button type="button" onclick="removePromoCoupon()" class="text-xs font-bold text-slate-400 hover:text-rose-600 px-1.5 py-0.5 rounded transition">✕</button>
+                    </div>
+
+                    <div id="coupon-input-box" class="flex gap-2">
+                        <input type="text" id="coupon-input" placeholder="Coupon Code (e.g. HOSTINGCART)" class="flex-grow px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs uppercase font-mono tracking-wider focus:outline-none focus:border-blue-600 font-semibold" value="{% if active_promo %}{{ active_promo.code }}{% endif %}">
+                        <button type="button" onclick="applyPromoCoupon(true)" class="px-4 py-2.5 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white rounded-xl text-xs font-bold transition">Apply</button>
+                    </div>
+                </div>
+
+                <!-- Big Continue / Pay Button -->
+                <button type="button" onclick="initiateCheckoutOrder()" id="pay-button" class="w-full py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-sm text-center block shadow-xl shadow-blue-600/30 transition mb-3">
+                    Continue to Payment
+                </button>
+
+                <!-- Trust Badges -->
+                <div class="text-center text-xs font-bold text-slate-600 flex items-center justify-center gap-1.5 pt-2">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+                    <span>30-Day Money-Back Guarantee</span>
+                </div>
+                <p class="text-[10px] text-slate-400 text-center mt-2 leading-tight">
+                    Web hosting fees are 100% refundable within 30 days. Domain registry costs are non-refundable per ICANN wholesale rules.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODAL 1: DIRECT UPI PAYMENT MODAL ================= -->
+<div id="payment-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 sm:p-7 text-center shadow-2xl relative overflow-hidden">
+        <button onclick="closePaymentModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-xl font-bold transition">&times;</button>
+
+        <div id="modal-step-pay">
+            <div class="flex items-center justify-between p-3 rounded-2xl bg-amber-50 border border-amber-200 mb-4">
+                <div class="flex items-center gap-2 text-amber-900 text-xs font-bold">
+                    <i data-lucide="clock" class="w-4 h-4 text-amber-600 animate-pulse"></i>
+                    <span>Session Closes In:</span>
+                </div>
+                <div class="text-xs font-mono font-black px-2.5 py-1 rounded-lg bg-amber-200 text-amber-950 flex items-center gap-1" id="payment-timer-badge">
+                    <span id="payment-timer">05:00</span>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-extrabold text-slate-900 mb-1">Scan & Pay via any UPI App</h3>
+            <p class="text-xs text-slate-500 mb-4">Google Pay &bull; PhonePe &bull; Paytm &bull; BHIM &bull; Any Bank</p>
+
+            <div class="relative bg-slate-50 p-4 rounded-2xl inline-block mb-3 border border-slate-200 shadow-inner">
+                <img id="upi-qr-image" src="" alt="UPI QR" class="w-48 h-48 mx-auto rounded-xl">
+                <div class="mt-2 text-[11px] text-slate-500 font-mono flex items-center justify-center gap-1">
+                    <i data-lucide="scan" class="w-3.5 h-3.5 text-blue-600"></i>
+                    <span>Scan with any UPI Scanner</span>
+                </div>
+            </div>
+
+            <div class="text-xs font-mono text-slate-700 mb-4 bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5 text-left">
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-500">Payee UPI ID:</span>
+                    <span class="font-bold text-slate-900 select-all" id="payee-upi-text">{{ upi_id|default('pawan8550@naviaxis') }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-500">Payee Name:</span>
+                    <span class="font-bold text-slate-900">HostingCart (Pawan)</span>
+                </div>
+                <div class="flex justify-between items-center border-t border-slate-200 pt-1.5 font-bold">
+                    <span class="text-slate-500">Exact Amount:</span>
+                    <span class="text-emerald-600 text-sm font-black" id="modal-pay-amount">₹0.00</span>
+                </div>
+            </div>
+
+            <!-- UTR Verification Box -->
+            <div class="bg-blue-50/70 p-4 rounded-2xl border border-blue-100 text-left mb-4">
+                <label class="block text-[11px] font-bold text-blue-950 mb-1">Enter 12-Digit UPI UTR / Reference No.</label>
+                <div class="flex gap-2">
+                    <input type="text" id="manual-utr-input" placeholder="e.g. 423589123456" maxlength="12" class="flex-grow px-3 py-2 bg-white border border-blue-200 rounded-xl text-xs font-mono text-slate-900 font-bold focus:outline-none focus:border-blue-600">
+                    <button type="button" onclick="submitManualUTR()" id="btn-submit-utr" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow transition">Verify</button>
+                </div>
+                <span class="text-[10px] text-blue-700 block mt-1.5">You get the 12-digit UTR on your PhonePe/GPay screen immediately after payment.</span>
+            </div>
+
+            <p class="text-[11px] text-slate-400 animate-pulse">Auto-verifying payment with bank network...</p>
+        </div>
+
+        <!-- STATE 2: Success Celebration -->
+        <div id="modal-step-success" class="hidden py-6">
+            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+                <i data-lucide="check" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-2xl font-black text-slate-900 mb-2">Payment Received!</h3>
+            <p class="text-xs text-slate-600 mb-6">Your web hosting node & domain have been automatically provisioned.</p>
+            <a id="success-hpanel-btn" href="/hpanel" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl block transition shadow-md">
+                Open Control Panel Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODAL 2: RAZORPAY SANDBOX TEST MODAL (If in Demo Mode) ================= -->
+<div id="razorpay-test-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 text-center shadow-2xl relative">
+        <button onclick="document.getElementById('razorpay-test-modal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+        <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3">
+            <i data-lucide="credit-card" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-lg font-black text-slate-900 mb-1">Razorpay Sandbox Simulator</h3>
+        <p class="text-xs text-slate-500 mb-4">Simulate a successful customer card/netbanking payment without spending real money.</p>
+        <div class="p-3 bg-slate-50 rounded-xl text-left text-xs font-mono mb-4 border border-slate-200 space-y-1">
+            <div class="flex justify-between"><span>Order ID:</span><strong id="rzp-test-order-id">-</strong></div>
+            <div class="flex justify-between"><span>Amount:</span><strong id="rzp-test-amount">₹0.00</strong></div>
+            <div class="flex justify-between"><span>Key Mode:</span><span class="text-blue-700 font-bold">TEST / SANDBOX</span></div>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="simulateRazorpaySuccess()" id="btn-rzp-sim" class="flex-grow py-3 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl transition shadow">
+                Simulate Successful Payment
+            </button>
+            <button onclick="document.getElementById('razorpay-test-modal').classList.add('hidden')" class="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Official Razorpay Checkout SDK -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+    const planData = {
+        id: {{ plan.id }},
+        name: "{{ plan.name }}",
+        slug: "{{ plan.slug }}",
+        free_domain: {{ plan.free_domain|default(0) }},
+        price_monthly: {{ plan.price_monthly }},
+        price_yearly: {{ plan.price_yearly }},
+        price_48m: {{ plan.price_48m }}
+    };
+
+    let activeCycle = "{{ cycle }}" || "48m";
+    let selectedPaymentMethod = "UPI_QR";
+    let domainShieldEnabled = false;
+    let appliedCoupon = null;
+    let currentOrderId = null;
+    let currentRazorpayDetails = null;
+    let pollInterval = null;
+    let timerCountdown = null;
+    let domainAction = "register"; // 'register' or 'existing'
+
+    function isDomainFreeWithCurrentSelection() {
+        return (planData.free_domain === 1 && (activeCycle === 'yearly' || activeCycle === '48m'));
+    }
+
+    function getDomainRegistrationFee(dom) {
+        const d = (dom || (document.getElementById('checkout-domain') ? document.getElementById('checkout-domain').value : '') || '').trim().toLowerCase();
+        if (d.endsWith('.in') || d.endsWith('.co.in')) return 399.0;
+        return 799.0;
+    }
+
+    function onDomainActionChange(action) {
+        domainAction = action;
+        recalcTotals();
+    }
+
+    function onPeriodChange(cycle) {
+        activeCycle = cycle;
+
+        ['48m', 'yearly', 'monthly'].forEach(c => {
+            const card = document.getElementById('card-cycle-' + c);
+            if (!card) return;
+            if (c === cycle) {
+                card.className = 'relative flex flex-col p-4 rounded-2xl border-2 border-blue-600 bg-blue-50/50 cursor-pointer transition cycle-card shadow-sm';
+            } else {
+                card.className = 'relative flex flex-col p-4 rounded-2xl border border-slate-200 bg-white hover:border-blue-600 cursor-pointer transition cycle-card';
+            }
+        });
+
+        const renewalNotes = {
+            '48m': `Renews after 48 months at ₹${Math.round(planData.price_48m / 48)}/mo for 48 months. Cancel anytime with zero penalties.`,
+            'yearly': `Renews after 12 months at ₹${Math.round(planData.price_yearly / 12)}/mo for 12 months. Cancel anytime.`,
+            'monthly': `Renews every month at ₹${planData.price_monthly}/mo. Cancel anytime.`
+        };
+        const noteEl = document.getElementById('plan-renewal-note');
+        if (noteEl) noteEl.innerText = renewalNotes[cycle] || '';
+
+        // Dynamic Hostinger-style Free Domain UI Rules
+        const isEligiblePlan = (planData.free_domain === 1);
+        const isFreeDomain = isDomainFreeWithCurrentSelection();
+        const upsellBanner = document.getElementById('switch-deal-banner');
+        const inclusionLine = document.getElementById('inclusion-domain-line');
+        const domainNonfreeNotice = document.getElementById('domain-nonfree-notice');
+        const domainFreeBadgeBox = document.getElementById('domain-free-badge-box');
+        const domainFreeCallout = document.getElementById('domain-free-callout');
+        const domainActionBox = document.getElementById('domain-action-box');
+        const displayFeeEl = document.getElementById('display-domain-fee');
+
+        const targetDom = (document.getElementById('checkout-domain') ? document.getElementById('checkout-domain').value : '').trim().toLowerCase();
+        const fee = getDomainRegistrationFee(targetDom);
+        if (displayFeeEl) displayFeeEl.innerText = `₹${fee.toFixed(2)}/yr`;
+
+        if (isFreeDomain) {
+            if (upsellBanner) upsellBanner.classList.add('hidden');
+            if (inclusionLine) {
+                inclusionLine.innerHTML = `
+                    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                    <span>Domain name is <strong class="text-emerald-700">100% FREE for 1 Year</strong> with this plan.</span>
+                `;
+            }
+            if (domainNonfreeNotice) domainNonfreeNotice.classList.add('hidden');
+            if (domainFreeBadgeBox) domainFreeBadgeBox.classList.remove('hidden');
+            if (domainFreeCallout) domainFreeCallout.classList.remove('hidden');
+            if (domainActionBox) domainActionBox.classList.add('hidden');
+        } else {
+            if (isEligiblePlan && cycle === 'monthly') {
+                if (upsellBanner) upsellBanner.classList.remove('hidden');
+                if (inclusionLine) {
+                    inclusionLine.innerHTML = `
+                        <span class="w-4 h-4 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-black text-[10px] flex-shrink-0">!</span>
+                        <span class="text-amber-950 font-bold">Want a free domain? Choose a 12-month or 48-month plan.</span>
+                    `;
+                }
+                if (domainNonfreeNotice) {
+                    domainNonfreeNotice.classList.remove('hidden');
+                    domainNonfreeNotice.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-amber-200 text-amber-900 flex items-center justify-center font-bold text-xs flex-shrink-0">!</span>
+                            <span>Want a free domain? Choose a 12-month or 48-month plan.</span>
+                        </div>
+                        <button type="button" onclick="onPeriodChange('yearly')" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-[11px] font-bold transition flex-shrink-0">
+                            Upgrade to 12M &rarr;
+                        </button>
+                    `;
+                }
+            } else {
+                // Single Starter plan
+                if (upsellBanner) upsellBanner.classList.add('hidden');
+                if (inclusionLine) {
+                    inclusionLine.innerHTML = `
+                        <span class="w-4 h-4 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-[10px] flex-shrink-0">✕</span>
+                        <span class="text-slate-500">Free domain not included in Single Starter.</span>
+                    `;
+                }
+                if (domainNonfreeNotice) {
+                    domainNonfreeNotice.classList.remove('hidden');
+                    domainNonfreeNotice.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs flex-shrink-0">✕</span>
+                            <span>Free domain not included in Single Starter. Choose Plus Growth or higher for free domain.</span>
+                        </div>
+                        <a href="/checkout?plan=premium&cycle=yearly" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[11px] font-bold transition flex-shrink-0">
+                            Upgrade Plan &rarr;
+                        </a>
+                    `;
+                }
+            }
+            if (domainFreeBadgeBox) domainFreeBadgeBox.classList.add('hidden');
+            if (domainFreeCallout) domainFreeCallout.classList.add('hidden');
+            if (domainActionBox) domainActionBox.classList.remove('hidden');
+        }
+
+        if (window.lucide) lucide.createIcons();
+        recalcTotals();
+    }
+
+    function onPaymentMethodChange(method) {
+        selectedPaymentMethod = method;
+        ['UPI_QR', 'RAZORPAY', 'CASHFREE'].forEach(m => {
+            let cardId = (m === 'UPI_QR') ? 'card-pay-upi' : ((m === 'RAZORPAY') ? 'card-pay-rzp' : 'card-pay-cf');
+            let card = document.getElementById(cardId);
+            if (!card) return;
+            if (m === method) {
+                card.className = 'flex items-start justify-between p-4 rounded-2xl bg-blue-50/60 border-2 border-blue-600 cursor-pointer shadow-sm transition method-card';
+            } else {
+                card.className = 'flex items-start justify-between p-4 rounded-2xl bg-white border border-slate-200 cursor-pointer hover:border-slate-300 transition method-card';
+            }
+        });
+    }
+
+    function toggleDomainShield(checked) {
+        domainShieldEnabled = checked;
+        const row = document.getElementById('shield-summary-row');
+        if (row) {
+            if (checked) row.classList.remove('hidden');
+            else row.classList.add('hidden');
+        }
+        recalcTotals();
+    }
+
+    function editDomainName() {
+        const box = document.getElementById('domain-edit-box');
+        if (box) box.classList.toggle('hidden');
+    }
+
+    function saveEditedDomain() {
+        const val = document.getElementById('checkout-domain').value.trim();
+        if (val) {
+            document.getElementById('display-domain').innerText = val;
+            document.getElementById('summary-domain-name').innerText = val;
+            document.getElementById('domain-edit-box').classList.add('hidden');
+            onPeriodChange(activeCycle); // update fee display
+        }
+    }
+
+    async function applyPromoCoupon(showAlert = true) {
+        const code = document.getElementById('coupon-input').value.trim().toUpperCase();
+        if (!code) {
+            if (showAlert) alert('Please enter a coupon code.');
+            return;
+        }
+
+        let subtotal = getSubtotal();
+        try {
+            const res = await fetch('/api/coupon/apply', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({code: code, subtotal: subtotal})
+            });
+            const data = await res.json();
+            if (data.success) {
+                appliedCoupon = data;
+                document.getElementById('coupon-applied-chip').classList.remove('hidden');
+                document.getElementById('chip-coupon-code').innerText = `${data.code} (${data.label || 'Active'})`;
+                document.getElementById('coupon-input-box').classList.add('hidden');
+                recalcTotals();
+            } else {
+                appliedCoupon = null;
+                recalcTotals();
+                if (showAlert) {
+                    alert(data.message || 'Invalid or inactive coupon code.');
+                }
+            }
+        } catch (e) {
+            console.error(e);
+            if (showAlert) alert('Network error verifying coupon.');
+        }
+    }
+
+    function removePromoCoupon() {
+        appliedCoupon = null;
+        document.getElementById('coupon-applied-chip').classList.add('hidden');
+        document.getElementById('coupon-input-box').classList.remove('hidden');
+        document.getElementById('coupon-input').value = '';
+        recalcTotals();
+    }
+
+    function getSubtotal() {
+        if (activeCycle === 'monthly') return planData.price_monthly;
+        if (activeCycle === 'yearly') return planData.price_yearly;
+        return planData.price_48m;
+    }
+
+    function recalcTotals() {
+        const subtotal = getSubtotal();
+        const periodTitles = {
+            '48m': '48-Month Period',
+            'yearly': '12-Month Period',
+            'monthly': '1-Month Period'
+        };
+        const titleEl = document.getElementById('summary-period-title');
+        if (titleEl) titleEl.innerText = periodTitles[activeCycle];
+
+        document.getElementById('summary-subtotal').innerText = `₹${subtotal.toLocaleString('en-IN')}`;
+        document.getElementById('summary-regular-plan').innerText = `₹${(subtotal * 3).toLocaleString('en-IN')}`;
+
+        let shieldCost = domainShieldEnabled ? 249.0 : 0.0;
+        let discount = 0.0;
+
+        if (appliedCoupon) {
+            if (appliedCoupon.discount_type === 'fixed') {
+                discount = Math.min(appliedCoupon.discount_value, subtotal);
+                document.getElementById('summary-discount-label').innerText = `${appliedCoupon.code} -₹${appliedCoupon.discount_value}`;
+            } else {
+                discount = Math.round(subtotal * (appliedCoupon.discount_value / 100.0) * 100) / 100;
+                document.getElementById('summary-discount-label').innerText = `${appliedCoupon.code} -${appliedCoupon.discount_value}%`;
+            }
+            document.getElementById('summary-discount-row').classList.remove('hidden');
+            document.getElementById('summary-discount-amount').innerText = `-₹${discount.toFixed(2)}`;
+        } else {
+            document.getElementById('summary-discount-row').classList.add('hidden');
+        }
+
+        // Domain calculation
+        const isFreeDomain = isDomainFreeWithCurrentSelection();
+        const targetDomain = ((document.getElementById('checkout-domain') ? document.getElementById('checkout-domain').value : '') || 'mysite.com').trim().toLowerCase();
+        const regularDomainRate = getDomainRegistrationFee(targetDomain);
+        let domainFee = 0.0;
+
+        const domNameEl = document.getElementById('summary-domain-name');
+        const domLabelEl = document.getElementById('summary-domain-label');
+        const domPriceEl = document.getElementById('summary-domain-price');
+
+        if (domNameEl) domNameEl.innerText = targetDomain;
+
+        if (isFreeDomain) {
+            if (domLabelEl) domLabelEl.innerText = "Domain Registration (1st Year)";
+            if (domPriceEl) domPriceEl.innerHTML = `<span class="text-slate-400 line-through font-mono text-[11px] block">₹${regularDomainRate.toFixed(2)}</span><span class="font-mono font-black text-emerald-600 uppercase text-[11px]">Free</span>`;
+            domainFee = 0.0;
+        } else {
+            if (domainAction === 'existing') {
+                if (domLabelEl) domLabelEl.innerText = "Existing Domain (DNS Setup)";
+                if (domPriceEl) domPriceEl.innerHTML = `<span class="font-mono font-black text-emerald-600 uppercase text-[11px]">Free</span>`;
+                domainFee = 0.0;
+            } else {
+                domainFee = regularDomainRate;
+                if (domLabelEl) domLabelEl.innerText = "Domain Registration (1 Year)";
+                if (domPriceEl) domPriceEl.innerHTML = `<span class="font-mono font-bold text-slate-900 text-xs">₹${domainFee.toFixed(2)}</span>`;
+            }
+        }
+
+        const baseBill = Math.max(0, subtotal - discount) + shieldCost + domainFee;
+        const surcharge = Math.round(baseBill * 0.12 * 100) / 100;
+        const taxable = baseBill + surcharge;
+        const gst = Math.round(taxable * 0.18 * 100) / 100;
+        const finalTotal = Math.round((taxable + gst) * 100) / 100;
+
+        const surchargeEl = document.getElementById('summary-surcharge');
+        if (surchargeEl) surchargeEl.innerText = `₹${surcharge.toFixed(2)}`;
+
+        const gstEl = document.getElementById('summary-gst');
+        if (gstEl) gstEl.innerText = `₹${gst.toFixed(2)}`;
+
+        const strikeEl = document.getElementById('summary-strikethrough-total');
+        if (strikeEl) strikeEl.innerText = `₹${((subtotal + domainFee) * 3.2).toLocaleString('en-IN', {maximumFractionDigits: 2})}`;
+
+        const finalTotalEl = document.getElementById('summary-final-total');
+        if (finalTotalEl) finalTotalEl.innerText = `₹${finalTotal.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+        return finalTotal;
+    }
+
+    async function initiateCheckoutOrder() {
+        const btn = document.getElementById('pay-button');
+        btn.disabled = true;
+        btn.innerText = 'Creating Order...';
+
+        const domain = document.getElementById('checkout-domain').value.trim();
+        const isFree = isDomainFreeWithCurrentSelection();
+        const payload = {
+            plan_id: planData.id,
+            domain_name: domain || 'hostingcart.com',
+            billing_cycle: activeCycle,
+            domain_action: isFree ? 'register' : domainAction,
+            is_domain_free: isFree ? 1 : 0,
+            coupon_code: appliedCoupon ? appliedCoupon.code : '',
+            payment_method: selectedPaymentMethod
+        };
+
+        const custName = document.getElementById('cust-name');
+        if (custName) {
+            payload.name = custName.value.trim() || 'Valued Customer';
+            payload.email = document.getElementById('cust-email').value.trim();
+            payload.phone = document.getElementById('cust-phone').value.trim();
+            payload.password = document.getElementById('cust-password').value;
+
+            if (!payload.email) {
+                alert('Please enter your email address for your Control Panel account.');
+                btn.disabled = false;
+                btn.innerText = 'Continue to Payment';
+                return;
+            }
+        }
+
+        try {
+            const res = await fetch('/api/order/create', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+
+            btn.disabled = false;
+            btn.innerText = 'Continue to Payment';
+
+            if (data.success) {
+                currentOrderId = data.order_id;
+                currentRazorpayDetails = data;
+
+                if (selectedPaymentMethod === 'UPI_QR') {
+                    openPaymentModal(data);
+                } else if (selectedPaymentMethod === 'RAZORPAY') {
+                    launchRazorpayCheckout(data);
+                } else {
+                    // Cashfree flow
+                    launchCashfreeCheckout(data);
+                }
+            } else {
+                alert(data.message || 'Error creating order.');
+            }
+        } catch (err) {
+            btn.disabled = false;
+            btn.innerText = 'Continue to Payment';
+            console.error(err);
+            alert('Failed to connect to checkout server.');
+        }
+    }
+
+    // ================= DIRECT UPI MODAL =================
+    function openPaymentModal(data) {
+        document.getElementById('modal-pay-amount').innerText = `₹${data.total_amount}`;
+        // Generate high quality QR code via quickchart API
+        const encodedUpi = encodeURIComponent(data.upi_qr_url);
+        document.getElementById('upi-qr-image').src = `https://quickchart.io/qr?text=${encodedUpi}&size=200&dark=0f172a&light=ffffff`;
+        document.getElementById('payment-modal').classList.remove('hidden');
+
+        let leftSec = 300;
+        const timerEl = document.getElementById('payment-timer');
+        clearInterval(timerCountdown);
+        timerCountdown = setInterval(() => {
+            leftSec--;
+            if (leftSec <= 0) {
+                clearInterval(timerCountdown);
+                closePaymentModal();
+                alert('Session expired. Please try again.');
+                return;
+            }
+            const m = String(Math.floor(leftSec / 60)).padStart(2, '0');
+            const s = String(leftSec % 60).padStart(2, '0');
+            timerEl.innerText = `${m}:${s}`;
+        }, 1000);
+
+        clearInterval(pollInterval);
+        pollInterval = setInterval(checkOrderStatus, 3000);
+
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function closePaymentModal() {
+        document.getElementById('payment-modal').classList.add('hidden');
+        clearInterval(pollInterval);
+        clearInterval(timerCountdown);
+    }
+
+    async function checkOrderStatus() {
+        if (!currentOrderId) return;
+        try {
+            const res = await fetch(`/api/order/status/${currentOrderId}`);
+            const data = await res.json();
+            if (data.is_paid || data.payment_status === 'paid') {
+                clearInterval(pollInterval);
+                clearInterval(timerCountdown);
+                document.getElementById('modal-step-pay').classList.add('hidden');
+                document.getElementById('modal-step-success').classList.remove('hidden');
+                document.getElementById('success-hpanel-btn').href = `/hpanel?order_id=${currentOrderId}`;
+                if (window.lucide) lucide.createIcons();
+            }
+        } catch (e) {}
+    }
+
+    async function submitManualUTR() {
+        const utr = document.getElementById('manual-utr-input').value.trim();
+        if (utr.length < 8) {
+            alert('Please enter a valid 12-digit UPI UTR number.');
+            return;
+        }
+        const btn = document.getElementById('btn-submit-utr');
+        btn.disabled = true;
+        btn.innerText = 'Verifying...';
+
+        try {
+            const res = await fetch('/api/order/verify-utr', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({order_id: currentOrderId, utr_number: utr})
+            });
+            const data = await res.json();
+            btn.disabled = false;
+            btn.innerText = 'Verify';
+
+            if (data.success) {
+                clearInterval(pollInterval);
+                clearInterval(timerCountdown);
+                document.getElementById('modal-step-pay').classList.add('hidden');
+                document.getElementById('modal-step-success').classList.remove('hidden');
+                document.getElementById('success-hpanel-btn').href = `/hpanel?order_id=${currentOrderId}`;
+                if (window.lucide) lucide.createIcons();
+            } else {
+                alert(data.message || 'Verification failed. Please check UTR number.');
+            }
+        } catch (err) {
+            btn.disabled = false;
+            btn.innerText = 'Verify';
+            alert('Network error during verification.');
+        }
+    }
+
+    // ================= RAZORPAY CHECKOUT SDK FLOW =================
+    function launchRazorpayCheckout(data) {
+        const custEmail = (document.getElementById('cust-email') ? document.getElementById('cust-email').value.trim() : '') || 'client@hostingcart.com';
+        const custName = (document.getElementById('cust-name') ? document.getElementById('cust-name').value.trim() : '') || 'Valued Customer';
+        const custPhone = (document.getElementById('cust-phone') ? document.getElementById('cust-phone').value.trim() : '') || '+919555838550';
+
+        // Check if Razorpay SDK loaded
+        if (typeof Razorpay !== 'undefined') {
+            const options = {
+                "key": data.razorpay_key_id || "rzp_test_ApexHost123",
+                "amount": data.amount_in_paise || (data.total_amount * 100),
+                "currency": "INR",
+                "name": "HostingCart",
+                "description": `Hosting Order #${data.order_number}`,
+                "image": "/static/img/favicon.svg",
+                "handler": async function (response) {
+                    // Payment succeeded on Razorpay
+                    await verifyRazorpayOnServer(data.order_id, response.razorpay_payment_id, response.razorpay_order_id, response.razorpay_signature);
+                },
+                "prefill": {
+                    "name": custName,
+                    "email": custEmail,
+                    "contact": custPhone
+                },
+                "theme": {
+                    "color": "#2563EB"
+                },
+                "modal": {
+                    "ondismiss": function() {
+                        console.log('Razorpay modal closed');
+                    }
+                }
+            };
+
+            try {
+                const rzp = new Razorpay(options);
+                rzp.on('payment.failed', function (response) {
+                    alert("Razorpay Payment Failed: " + response.error.description);
+                });
+                rzp.open();
+                return;
+            } catch (rzpErr) {
+                console.warn('Razorpay live checkout error, falling back to simulator modal:', rzpErr);
+            }
+        }
+
+        // Sandbox simulator fallback
+        document.getElementById('rzp-test-order-id').innerText = `#${data.order_number}`;
+        document.getElementById('rzp-test-amount').innerText = `₹${data.total_amount}`;
+        document.getElementById('razorpay-test-modal').classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+    }
+
+    async function simulateRazorpaySuccess() {
+        const btn = document.getElementById('btn-rzp-sim');
+        btn.disabled = true;
+        btn.innerText = 'Confirming Payment...';
+
+        const fakePaymentId = 'pay_' + Math.random().toString(36).substring(2, 12).toUpperCase();
+        await verifyRazorpayOnServer(currentOrderId, fakePaymentId, 'order_sim_test', 'test_signature_valid');
+    }
+
+    async function verifyRazorpayOnServer(orderId, paymentId, rzpOrderId, signature) {
+        try {
+            const res = await fetch('/api/order/razorpay/verify', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    order_id: orderId,
+                    razorpay_payment_id: paymentId,
+                    razorpay_order_id: rzpOrderId,
+                    razorpay_signature: signature
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('razorpay-test-modal').classList.add('hidden');
+                document.getElementById('modal-step-pay').classList.add('hidden');
+                document.getElementById('modal-step-success').classList.remove('hidden');
+                document.getElementById('success-hpanel-btn').href = `/hpanel?order_id=${orderId}`;
+                document.getElementById('payment-modal').classList.remove('hidden');
+                if (window.lucide) lucide.createIcons();
+            } else {
+                alert(data.message || 'Razorpay verification failed.');
+            }
+        } catch (e) {
+            alert('Failed to verify Razorpay payment.');
+        }
+    }
+
+    // ================= CASHFREE FLOW =================
+    async function launchCashfreeCheckout(data) {
+        if (!confirm(`Proceed with Cashfree Gateway for ₹${data.total_amount}?`)) return;
+
+        const fakeCfId = 'CF_' + Math.random().toString(36).substring(2, 10).toUpperCase();
+        try {
+            const res = await fetch('/api/order/cashfree/verify', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ order_id: data.order_id, cf_payment_id: fakeCfId })
+            });
+            const resData = await res.json();
+            if (resData.success) {
+                document.getElementById('modal-step-pay').classList.add('hidden');
+                document.getElementById('modal-step-success').classList.remove('hidden');
+                document.getElementById('success-hpanel-btn').href = `/hpanel?order_id=${data.order_id}`;
+                document.getElementById('payment-modal').classList.remove('hidden');
+                if (window.lucide) lucide.createIcons();
+            } else {
+                alert(resData.message || 'Cashfree verification failed.');
+            }
+        } catch (e) {
+            alert('Error contacting Cashfree gateway.');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        onPeriodChange(activeCycle);
+
+        // Auto-check coupon from URL parameter (?coupon=...) or active promo
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlCoupon = urlParams.get('coupon');
+        if (urlCoupon && urlCoupon.trim()) {
+            const input = document.getElementById('coupon-input');
+            if (input) input.value = urlCoupon.trim().toUpperCase();
+            applyPromoCoupon(false);
+        } else {
+            const input = document.getElementById('coupon-input');
+            if (input && input.value.trim()) {
+                applyPromoCoupon(false);
+            }
+        }
+        if (window.lucide) lucide.createIcons();
+    });
+</script>
+{% endblock %}

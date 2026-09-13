@@ -1706,6 +1706,9 @@ def admin_save_settings():
     cursor = conn.cursor()
     for k, v in data.items():
         cursor.execute("INSERT OR REPLACE INTO server_settings (key, value) VALUES (?, ?)", (k, str(v)))
+    # If switching to sandbox, ensure registrar_verified is reset
+    if data.get('registrar_sandbox') == '1':
+        cursor.execute("INSERT OR REPLACE INTO server_settings (key, value) VALUES ('registrar_verified', '0')")
     conn.commit()
     conn.close()
     return jsonify({"success": True, "message": "Server & payment settings successfully saved!"})
@@ -1872,6 +1875,14 @@ def admin_system_metrics():
 @admin_required
 def admin_test_registrar():
     result = DomainRegistrarClient.test_connection()
+    conn = get_db()
+    cursor = conn.cursor()
+    if result.get("success"):
+        cursor.execute("INSERT OR REPLACE INTO server_settings (key, value) VALUES ('registrar_verified', '1')")
+    else:
+        cursor.execute("INSERT OR REPLACE INTO server_settings (key, value) VALUES ('registrar_verified', '0')")
+    conn.commit()
+    conn.close()
     return jsonify(result)
 
 @app.route('/api/admin/server-ip', methods=['GET'])

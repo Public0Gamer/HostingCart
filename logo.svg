@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 255 54" width="255" height="54" fill="none">
+  <defs>
+    <linearGradient id="hc-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb" />
+      <stop offset="60%" stop-color="#1d4ed8" />
+      <stop offset="100%" stop-color="#ea580c" />
+    </linearGradient>
+    <linearGradient id="hc-bolt" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#ea580c" />
+    </linearGradient>
+    <filter id="hc-shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#2563eb" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- Modern Icon Symbol: Cloud & Shopping Cart Node -->
+  <g filter="url(#hc-shadow)">
+    <!-- Base Rounded Plate -->
+    <rect x="2" y="2" width="50" height="50" rx="14" fill="url(#hc-grad)" />
+    <!-- Server Stack & Cloud Elements inside Icon -->
+    <path d="M15 20C15 16.5 17.8 14 21.5 14C24.3 14 26.6 15.6 27.5 18C28.3 17.4 29.3 17 30.5 17C33 17 35 19 35 21.5C36.8 21.8 38 23.3 38 25.2C38 27.3 36.3 29 34.2 29H18C15.8 29 14 27.2 14 25C14 23.2 15.2 21.7 16.8 21.2" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9" />
+    <!-- High-speed Lightning Bolt -->
+    <path d="M28 22L22 32H27L25 40L33 29H28L30 22Z" fill="url(#hc-bolt)" stroke="#ffffff" stroke-width="1.2" stroke-linejoin="round" />
+  </g>
+
+  <!-- Brand Typography: HostingCart -->
+  <text x="64" y="32" font-family="'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif" font-weight="900" font-size="23" letter-spacing="-0.5" fill="#0f172a">
+    Hosting<tspan fill="#2563eb">Cart</tspan>
+  </text>
+  <text x="65" y="44" font-family="'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif" font-weight="700" font-size="9" letter-spacing="1.5" fill="#ea580c">
+    FAST CLOUD &bull; DOMAINS &bull; INDIA
+  </text>
+</svg>

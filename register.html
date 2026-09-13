@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up | {{ brand_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto px-4 py-16">
+    <div class="p-8 rounded-3xl bg-white border border-slate-200 shadow-md">
+        <div class="text-center mb-8">
+            <div class="w-12 h-12 rounded-2xl bg-orange-50 text-orange-600 mx-auto flex items-center justify-center mb-3">
+                <i data-lucide="user-plus" class="w-6 h-6"></i>
+            </div>
+            <h2 class="text-2xl font-extrabold text-slate-900">Create your Account</h2>
+            <p class="text-xs text-slate-500 mt-1">Get instant access to cloud web hosting & hPanel</p>
+        </div>
+
+        <form method="POST" action="/register" class="space-y-4 text-xs">
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Full Name</label>
+                <input type="text" name="name" placeholder="Rohan Sharma" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-primary-600 focus:bg-white" required>
+            </div>
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Email Address</label>
+                <input type="email" name="email" placeholder="rohan@example.com" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-primary-600 focus:bg-white" required>
+            </div>
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Phone Number (Optional)</label>
+                <input type="text" name="phone" placeholder="+91 9876543210" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-primary-600 focus:bg-white">
+            </div>
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Password</label>
+                <input type="password" name="password" placeholder="••••••••••••" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-primary-600 focus:bg-white" required>
+            </div>
+            <button type="submit" class="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white font-extrabold rounded-xl shadow-sm transition text-sm">
+                Create Account
+            </button>
+        </form>
+
+        <p class="text-xs text-center text-slate-500 mt-6">
+            Already have an account? <a href="/login" class="text-primary-600 font-bold hover:underline">Log in</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
