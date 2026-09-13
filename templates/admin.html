@@ -671,8 +671,17 @@
                             <p class="text-[11px] text-slate-500">ConnectReseller / ResellerClub auto-registration engine</p>
                         </div>
                     </div>
-                    <span class="text-[10px] font-mono px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold" id="registrar-mode-badge">
-                        {% if settings.registrar_sandbox == '1' %}Sandbox (₹0 Virtual){% else %}LIVE ICANN Active{% endif %}
+                    <span class="text-[10px] font-mono px-2.5 py-1 rounded-lg font-bold flex items-center gap-1.5 {% if settings.registrar_sandbox == '1' %}bg-indigo-50 text-indigo-700 border border-indigo-200{% elif settings.registrar_verified == '1' and settings.registrar_api_key %}bg-emerald-50 text-emerald-800 border border-emerald-200{% else %}bg-rose-50 text-rose-700 border border-rose-200{% endif %}" id="registrar-mode-badge">
+                        {% if settings.registrar_sandbox == '1' %}
+                            <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                            <span>Sandbox (₹0 Virtual)</span>
+                        {% elif settings.registrar_verified == '1' and settings.registrar_api_key %}
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span>LIVE ConnectReseller Active</span>
+                        {% else %}
+                            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                            <span>Not Verified / Disconnected</span>
+                        {% endif %}
                     </span>
                 </div>
 
@@ -706,7 +715,7 @@
                             <span class="font-bold text-slate-800">Your Backend Server IP:</span>
                             <code class="font-mono text-indigo-600 font-bold ml-1" id="current-ip-text">Detecting...</code>
                         </div>
-                        <span class="text-[10px] text-slate-500 font-semibold">(ConnectReseller &gt; Settings &gt; API &gt; Authorized IPs me <strong class="text-indigo-600">0.0.0.0/0</strong> ya ye IP daalein)</span>
+                        <span class="text-[10px] text-slate-500 font-semibold">(ConnectReseller &gt; Settings &gt; API &gt; Authorized IPs me apna Server IP add karein)</span>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
@@ -1381,54 +1390,132 @@ Login Panel: http://127.0.0.1:5000/login`);
         if (window.lucide) lucide.createIcons();
     }
 
-    // REGISTRAR SETTINGS HANDLER
+    // REGISTRAR SETTINGS HANDLER WITH LIVE VERIFICATION
     async function saveRegistrarSettings(e) {
         if (e) e.preventDefault();
+        const btn = document.getElementById('btn-save-registrar');
         const saveBox = document.getElementById('registrar-save-status');
+        const badge = document.getElementById('registrar-mode-badge');
+        const currentIp = document.getElementById('current-ip-text') ? document.getElementById('current-ip-text').innerText : 'Your Server IP';
+
+        btn.disabled = true;
+        btn.innerHTML = `<span class="animate-spin inline-block mr-1">⚙</span> Saving & Verifying...`;
+        if (saveBox) saveBox.classList.add('hidden');
+
+        const isSandbox = document.getElementById('setting-reg-sandbox').checked;
+        const apiKey = document.getElementById('setting-reg-api-key').value.trim();
+
         const payload = {
             registrar_provider: document.getElementById('setting-reg-provider').value,
             registrar_reseller_id: document.getElementById('setting-reg-reseller-id').value.trim(),
-            registrar_api_key: document.getElementById('setting-reg-api-key').value.trim(),
-            registrar_sandbox: document.getElementById('setting-reg-sandbox').checked ? '1' : '0',
+            registrar_api_key: apiKey,
+            registrar_sandbox: isSandbox ? '1' : '0',
             registrar_auto_register: document.getElementById('setting-reg-auto').checked ? '1' : '0'
         };
 
         try {
+            // Step 1: Save settings to DB
             const res = await fetch('/api/admin/settings/save', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(payload)
             });
             const data = await res.json();
-            if (data.success) {
-                const badge = document.getElementById('registrar-mode-badge');
+
+            // Step 2: If Sandbox mode, save cleanly without demanding live ICANN connection
+            if (isSandbox) {
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i><span>Save Registrar Settings</span>`;
                 if (badge) {
-                    if (payload.registrar_sandbox === '1') {
-                        badge.innerText = 'Sandbox (₹0 Virtual)';
-                        badge.className = 'text-[10px] font-mono px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold';
-                    } else {
-                        badge.innerText = 'LIVE ICANN Active';
-                        badge.className = 'text-[10px] font-mono px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold';
-                    }
+                    badge.className = 'text-[10px] font-mono px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold flex items-center gap-1.5';
+                    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-indigo-500"></span><span>Sandbox (₹0 Virtual)</span>`;
+                }
+                if (saveBox) {
+                    saveBox.classList.remove('hidden');
+                    saveBox.className = 'mt-3 p-3 rounded-xl text-xs font-mono bg-indigo-50 text-indigo-900 border border-indigo-200';
+                    saveBox.innerHTML = `<strong>✔ SAVED (Sandbox Mode):</strong> Settings saved. Domain orders will use ₹0 virtual simulation mode for testing.`;
+                }
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            // Step 3: Live Mode requested - Must have API Key
+            if (!apiKey) {
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i><span>Save Registrar Settings</span>`;
+                if (badge) {
+                    badge.className = 'text-[10px] font-mono px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 font-bold flex items-center gap-1.5';
+                    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span><span>Not Verified / Disconnected</span>`;
+                }
+                if (saveBox) {
+                    saveBox.classList.remove('hidden');
+                    saveBox.className = 'mt-3 p-3 rounded-xl text-xs font-mono bg-rose-50 text-rose-900 border border-rose-200';
+                    saveBox.innerHTML = `<strong>❌ ERROR:</strong> Wholesale API Key is required for Live Mode. Please enter your API Key or enable Sandbox Test Mode.`;
+                }
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            // Step 4: LIVE VALIDATION - actively test against ConnectReseller
+            const testRes = await fetch('/api/admin/registrar/test', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            });
+            const testData = await testRes.json();
+
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i><span>Save Registrar Settings</span>`;
+
+            if (testData.success) {
+                // Legitimate verified connection
+                if (badge) {
+                    badge.className = 'text-[10px] font-mono px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold flex items-center gap-1.5';
+                    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span>LIVE ConnectReseller Active</span>`;
                 }
                 if (saveBox) {
                     saveBox.classList.remove('hidden');
                     saveBox.className = 'mt-3 p-3 rounded-xl text-xs font-mono bg-emerald-50 text-emerald-900 border border-emerald-200';
-                    saveBox.innerHTML = `<strong>SAVED:</strong> Credentials permanently saved to database! You can change or update them at any time.`;
+                    saveBox.innerHTML = `<strong>✔ 100% VERIFIED & SAVED:</strong> ConnectReseller LIVE API authenticated successfully! Real ICANN wholesale registration is now live and active.`;
                 }
             } else {
+                // Rejected by ConnectReseller - NEVER show green!
+                if (badge) {
+                    badge.className = 'text-[10px] font-mono px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 font-bold flex items-center gap-1.5';
+                    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span><span>Connection Failed (Unverified)</span>`;
+                }
                 if (saveBox) {
                     saveBox.classList.remove('hidden');
-                    saveBox.className = 'mt-3 p-3 rounded-xl text-xs font-mono bg-rose-50 text-rose-900 border border-rose-200';
-                    saveBox.innerHTML = `<strong>ERROR:</strong> ${data.message || 'Could not save settings'}`;
+                    saveBox.className = 'mt-3 p-3.5 rounded-xl text-xs bg-rose-50 text-rose-900 border border-rose-200 space-y-2.5 font-sans';
+                    saveBox.innerHTML = `
+                        <div class="font-bold text-rose-800 text-xs flex items-center gap-1.5">
+                            <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-600"></i>
+                            <span>❌ ConnectReseller Live Verification FAILED:</span>
+                        </div>
+                        <div class="font-mono bg-white p-2 rounded-lg border border-rose-200 text-rose-700 text-[11px] font-bold">${testData.message || 'API rejected credentials'}</div>
+                        <p class="text-[11px] text-rose-800 leading-relaxed">
+                            Yeh credentials database me save ho gaye hain, lekin <strong>LIVE Active NAHI hua</strong> kyunki ConnectReseller API ne authentication reject kar di. Jab tak ConnectReseller se verified response nahi aayega, status Inactive rahega.
+                        </p>
+                        <div class="p-2.5 bg-white/95 rounded-xl text-[11px] text-slate-700 space-y-1 border border-rose-200">
+                            <strong class="text-slate-800 block text-xs">Isko Solve Kaise Karein:</strong>
+                            <ol class="list-decimal list-inside pl-1 space-y-1 text-slate-600">
+                                <li>ConnectReseller Dashboard me jayein &gt; <em>Settings &gt; API</em> me <strong>Authorized IPs</strong> me apna Server IP (<code class="px-1 py-0.5 bg-slate-100 text-indigo-700 font-mono font-bold rounded">${currentIp}</code>) add karein.</li>
+                                <li>Apna <strong>Wholesale API Key</strong> dobara check karein (kahi koi space ya missing character na ho).</li>
+                                <li>Agar ConnectReseller me abhi wallet balance ya IP approval pending hai, to upar <strong>"Sandbox Test Mode"</strong> tick karke <strong>Save</strong> karein (Isme ₹0 me poora system chalega).</li>
+                            </ol>
+                        </div>
+                    `;
                 }
             }
+            if (window.lucide) lucide.createIcons();
         } catch (err) {
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i><span>Save Registrar Settings</span>`;
             if (saveBox) {
                 saveBox.classList.remove('hidden');
                 saveBox.className = 'mt-3 p-3 rounded-xl text-xs font-mono bg-rose-50 text-rose-900 border border-rose-200';
-                saveBox.innerHTML = `<strong>ERROR:</strong> Network failed: ${err}`;
+                saveBox.innerHTML = `<strong>ERROR:</strong> Network connection failed: ${err}`;
             }
+            if (window.lucide) lucide.createIcons();
         }
     }
 
@@ -1436,8 +1523,11 @@ Login Panel: http://127.0.0.1:5000/login`);
     async function testRegistrarConnection() {
         const btn = document.getElementById('btn-test-registrar');
         const resBox = document.getElementById('registrar-test-result');
+        const badge = document.getElementById('registrar-mode-badge');
+        const currentIp = document.getElementById('current-ip-text') ? document.getElementById('current-ip-text').innerText : 'Your Server IP';
+
         btn.disabled = true;
-        btn.innerHTML = `<span class="animate-spin inline-block mr-1">⚙</span> Testing...`;
+        btn.innerHTML = `<span class="animate-spin inline-block mr-1">⚙</span> Testing Live API...`;
         if (resBox) resBox.classList.add('hidden');
 
         try {
@@ -1448,6 +1538,8 @@ Login Panel: http://127.0.0.1:5000/login`);
                 registrar_sandbox: document.getElementById('setting-reg-sandbox').checked ? '1' : '0',
                 registrar_auto_register: document.getElementById('setting-reg-auto').checked ? '1' : '0'
             };
+
+            // Save currently entered inputs first so test runs against them
             await fetch('/api/admin/settings/save', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -1461,32 +1553,38 @@ Login Panel: http://127.0.0.1:5000/login`);
             const data = await res.json();
             btn.disabled = false;
             btn.innerHTML = `<i data-lucide="zap" class="w-3.5 h-3.5 text-indigo-600"></i><span>Test Connection</span>`;
-            if (window.lucide) lucide.createIcons();
 
             if (resBox) {
                 resBox.classList.remove('hidden');
                 if (data.success) {
+                    if (badge) {
+                        badge.className = 'text-[10px] font-mono px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold flex items-center gap-1.5';
+                        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span>LIVE ConnectReseller Active</span>`;
+                    }
                     resBox.className = 'mt-3 p-3 rounded-xl text-xs font-mono bg-emerald-50 text-emerald-900 border border-emerald-200';
                     let balText = data.balance !== undefined ? `<br><span class="text-[11px] text-emerald-700">Provider: ${data.provider} | Balance: ₹${data.balance}</span>` : `<br><span class="text-[11px] text-emerald-700">Provider: ${data.provider}</span>`;
-                    resBox.innerHTML = `<strong>SUCCESS:</strong> ${data.message} ${balText}`;
+                    resBox.innerHTML = `<strong>✔ SUCCESS:</strong> ${data.message} ${balText}`;
                 } else {
-                    const currentIp = document.getElementById('current-ip-text') ? document.getElementById('current-ip-text').innerText : 'Your Public IP';
+                    if (badge) {
+                        badge.className = 'text-[10px] font-mono px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 font-bold flex items-center gap-1.5';
+                        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span><span>Connection Failed (Unverified)</span>`;
+                    }
                     resBox.className = 'mt-3 p-3.5 rounded-xl text-xs bg-rose-50 text-rose-900 border border-rose-200 space-y-2.5 font-sans';
                     resBox.innerHTML = `
                         <div class="font-bold font-mono text-rose-800 text-[11px]">RESPONSE: ${data.message}</div>
                         <div class="p-3 bg-white/95 rounded-xl text-[11px] text-slate-700 space-y-1.5 border border-rose-200 shadow-sm">
                             <div class="flex items-center gap-1.5 text-rose-800 font-bold text-xs mb-1">
                                 <i data-lucide="help-circle" class="w-4 h-4"></i>
-                                <span>ConnectReseller 401 Fix (Permanent Solution):</span>
+                                <span>ConnectReseller Rejected - Fix Guide:</span>
                             </div>
-                            <p><strong>Cloud Server (Render) Fix:</strong> Render cloud server ka IP dynamic hota hai. ConnectReseller dashboard me <em>Settings &gt; API</em> par jayein, aur <strong>Authorized IPs</strong> box me <code class="px-1.5 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded font-mono font-bold">0.0.0.0/0</code> daal kar Save kar dijiye (Isse Render ki API request kabhi block nahi hogi).</p>
-                            <p><strong>Specific Server IP:</strong> Ya fir ConnectReseller me ye server IP add karein: <code class="px-1.5 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded font-mono font-bold">${currentIp}</code></p>
-                            <p><strong>Immediate ₹0 Testing:</strong> Agar ConnectReseller me wallet activation pending hai, to upar <strong>"Sandbox Test Mode"</strong> tick karke <strong>Save</strong> dabayein &mdash; bina kisi cost ke full testing shuru ho jayegi!</p>
+                            <p><strong>1. Server IP Whitelist:</strong> ConnectReseller dashboard me <em>Settings &gt; API</em> par jayein, aur <strong>Authorized IPs</strong> box me apna Server IP add karein: <code class="px-1.5 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded font-mono font-bold">${currentIp}</code> (ConnectReseller me CIDR jaise /0 ya /24 allow nahi hai, sirf exact IP daalein).</p>
+                            <p><strong>2. Wholesale API Key:</strong> Wholesale API Key ko check karein ki koi extra space ya character miss na ho.</p>
+                            <p><strong>3. Immediate ₹0 Testing:</strong> Agar ConnectReseller me wallet activation pending hai, to upar <strong>"Sandbox Test Mode"</strong> tick karke <strong>Save</strong> dabayein &mdash; bina kisi cost ke full testing shuru ho jayegi!</p>
                         </div>
                     `;
-                    if (window.lucide) lucide.createIcons();
                 }
             }
+            if (window.lucide) lucide.createIcons();
         } catch (err) {
             btn.disabled = false;
             btn.innerHTML = `<i data-lucide="zap" class="w-3.5 h-3.5 text-indigo-600"></i><span>Test Connection</span>`;
@@ -1495,6 +1593,7 @@ Login Panel: http://127.0.0.1:5000/login`);
                 resBox.className = 'mt-3 p-3 rounded-xl text-xs font-mono bg-rose-50 text-rose-900 border border-rose-200';
                 resBox.innerHTML = `<strong>ERROR:</strong> Network connection error: ${err}`;
             }
+            if (window.lucide) lucide.createIcons();
         }
     }
 
