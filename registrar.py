@@ -190,9 +190,10 @@ class DomainRegistrarClient:
             if settings["provider"] == "connectreseller":
                 # ConnectReseller official domain check endpoint to verify API key
                 url = "https://api.connectreseller.com/ConnectReseller/ESHOP/checkDomain"
+                probe_domain = f"hc-probe-{random.randint(100000, 999999)}.com"
                 params = {
                     "APIKey": settings["api_key"],
-                    "websiteName": "hostingcart.com"
+                    "websiteName": probe_domain
                 }
                 resp = requests.get(url, params=params, timeout=12)
                 try:
@@ -205,24 +206,35 @@ class DomainRegistrarClient:
                     }
 
                 status_code = data.get("statusCode")
-                if status_code is None and isinstance(data.get("responseMsg"), dict):
-                    status_code = data.get("responseMsg", {}).get("statusCode")
+                resp_msg = data.get("responseMsg", {}) if isinstance(data.get("responseMsg"), dict) else {}
+                if status_code is None and resp_msg:
+                    status_code = resp_msg.get("statusCode")
 
-                if str(status_code) in ("200", "0") or ("responseData" in data and data["responseData"]):
+                err_msg = (
+                    resp_msg.get("message")
+                    or data.get("responseText")
+                    or data.get("message")
+                    or data.get("statusText")
+                    or f"Status code {status_code}"
+                )
+
+                # ConnectReseller returns "Domain Available" (200) or "Domain Not Available" (400)
+                # Both mean the API Key and IP Whitelist are 100% verified and authenticated!
+                is_authenticated = (
+                    str(status_code) in ("200", "0")
+                    or "Domain Available" in err_msg
+                    or "Domain Not Available" in err_msg
+                    or ("responseData" in data and data["responseData"])
+                )
+
+                if is_authenticated and str(status_code) not in ("401", "402") and "unauthenticated" not in err_msg.lower():
                     return {
                         "success": True,
                         "provider": "ConnectReseller LIVE",
                         "mode": "LIVE ICANN Registry",
-                        "message": "Connected successfully to ConnectReseller LIVE API! Wholesale domain registration engine is active."
+                        "message": "Connected successfully to ConnectReseller LIVE API! Wholesale API Key & IP Whitelist are verified and active."
                     }
                 else:
-                    err_msg = (
-                        data.get("responseText")
-                        or data.get("responseMsg", {}).get("message")
-                        or data.get("message")
-                        or data.get("statusText")
-                        or f"Status code {status_code}"
-                    )
                     return {
                         "success": False,
                         "provider": "ConnectReseller",
