@@ -1,0 +1,101 @@
+/* ==========================================================
+   ApexHost — Clean, Corporate & Trustworthy Light Theme
+   Designed for Maximum Customer Conversion & Genuine Business Trust
+   Inspired by Stripe, Google Cloud, and Hostinger Official Light UI
+   ========================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+    --bg-page: #f8fafc;
+    --bg-card: #ffffff;
+    --border-light: #e2e8f0;
+    --border-focus: #3b82f6;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --primary-blue: #2563eb;
+    --accent-orange: #f97316;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    overflow-x: hidden;
+    letter-spacing: -0.01em;
+}
+
+code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* Crisp Clean Card Styling */
+.card-clean {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+    transition: all 0.25s ease-in-out;
+}
+
+.card-clean:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.08), 0 4px 8px -4px rgba(15, 23, 42, 0.04);
+    transform: translateY(-2px);
+}
+
+/* Featured / Best Seller Highlight Card */
+.card-featured {
+    background: #ffffff;
+    border: 2px solid #2563eb;
+    box-shadow: 0 20px 35px -10px rgba(37, 99, 235, 0.15), 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Shimmer on primary CTA button */
+.btn-shimmer {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-shimmer::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        60deg,
+        transparent,
+        rgba(255, 255, 255, 0.25),
+        transparent
+    );
+    transform: rotate(30deg);
+    animation: shimmer-light 4s infinite;
+}
+
+@keyframes shimmer-light {
+    0% { transform: translateX(-100%) rotate(30deg); }
+    20%, 100% { transform: translateX(100%) rotate(30deg); }
+}
+
+/* Subtle Gradient Accents */
+.hero-glow-light {
+    background: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.07) 0%, rgba(249, 115, 22, 0.04) 40%, transparent 70%);
+}
+
+/* Custom Scrollbar for Light Mode */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}

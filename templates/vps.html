@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Cloud VPS Hosting | {{ brand_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="text-xs font-bold uppercase tracking-wider text-primary-600 mb-2 block">Dedicated Virtual Compute</span>
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight mb-4">
+            High-Performance Cloud VPS Servers
+        </h1>
+        <p class="text-sm text-slate-600">
+            Dedicated KVM virtualization, dedicated IPv4 address, root access, and 1 Gbps port speed.
+        </p>
+    </div>
+
+    <!-- VPS Plans Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+        <div class="p-8 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div>
+                <h3 class="text-xl font-bold text-slate-900 mb-1">KVM VPS 1</h3>
+                <p class="text-xs text-slate-500 mb-6">Great for Docker containers, staging & small bots</p>
+                <div class="text-3xl font-black text-slate-900 mb-6">₹499 <span class="text-xs text-slate-500 font-normal">/month</span></div>
+
+                <ul class="space-y-3 text-xs text-slate-700">
+                    <li class="flex items-center gap-2"><i data-lucide="cpu" class="w-4 h-4 text-primary-600"></i> 1 vCPU Core (3.4 GHz)</li>
+                    <li class="flex items-center gap-2"><i data-lucide="server" class="w-4 h-4 text-primary-600"></i> 2 GB DDR4 RAM</li>
+                    <li class="flex items-center gap-2"><i data-lucide="hard-drive" class="w-4 h-4 text-primary-600"></i> 40 GB NVMe Storage</li>
+                    <li class="flex items-center gap-2"><i data-lucide="activity" class="w-4 h-4 text-primary-600"></i> 1 TB Bandwidth</li>
+                    <li class="flex items-center gap-2"><i data-lucide="terminal" class="w-4 h-4 text-primary-600"></i> Full Root Access (Ubuntu/Debian)</li>
+                </ul>
+            </div>
+            <a href="/checkout?plan=cloud-startup&cycle=monthly" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-2xl text-xs font-bold text-center block mt-8 border border-slate-200 transition">
+                Order VPS 1
+            </a>
+        </div>
+
+        <div class="p-8 rounded-3xl bg-white border-2 border-primary-600 shadow-md flex flex-col justify-between relative">
+            <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary-600 text-white text-[10px] font-bold px-3 py-0.5 rounded-full uppercase">Most Popular</span>
+            <div>
+                <h3 class="text-xl font-bold text-slate-900 mb-1">KVM VPS 2</h3>
+                <p class="text-xs text-slate-500 mb-6">Perfect for production APIs, SaaS apps & stores</p>
+                <div class="text-3xl font-black text-slate-900 mb-6">₹999 <span class="text-xs text-slate-500 font-normal">/month</span></div>
+
+                <ul class="space-y-3 text-xs text-slate-700">
+                    <li class="flex items-center gap-2"><i data-lucide="cpu" class="w-4 h-4 text-primary-600"></i> 2 vCPU Cores</li>
+                    <li class="flex items-center gap-2"><i data-lucide="server" class="w-4 h-4 text-primary-600"></i> 4 GB DDR4 RAM</li>
+                    <li class="flex items-center gap-2"><i data-lucide="hard-drive" class="w-4 h-4 text-primary-600"></i> 80 GB NVMe Storage</li>
+                    <li class="flex items-center gap-2"><i data-lucide="activity" class="w-4 h-4 text-primary-600"></i> 2 TB Bandwidth</li>
+                    <li class="flex items-center gap-2"><i data-lucide="shield" class="w-4 h-4 text-emerald-600"></i> Free Dedicated IPv4</li>
+                </ul>
+            </div>
+            <a href="/checkout?plan=cloud-startup&cycle=monthly" class="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-2xl text-xs font-bold text-center block mt-8 shadow-sm transition">
+                Order VPS 2
+            </a>
+        </div>
+
+        <div class="p-8 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div>
+                <h3 class="text-xl font-bold text-slate-900 mb-1">KVM VPS 4</h3>
+                <p class="text-xs text-slate-500 mb-6">High memory for agency clustering & databases</p>
+                <div class="text-3xl font-black text-slate-900 mb-6">₹1,899 <span class="text-xs text-slate-500 font-normal">/month</span></div>
+
+                <ul class="space-y-3 text-xs text-slate-700">
+                    <li class="flex items-center gap-2"><i data-lucide="cpu" class="w-4 h-4 text-primary-600"></i> 4 vCPU Cores</li>
+                    <li class="flex items-center gap-2"><i data-lucide="server" class="w-4 h-4 text-primary-600"></i> 8 GB DDR4 RAM</li>
+                    <li class="flex items-center gap-2"><i data-lucide="hard-drive" class="w-4 h-4 text-primary-600"></i> 160 GB NVMe Storage</li>
+                    <li class="flex items-center gap-2"><i data-lucide="activity" class="w-4 h-4 text-primary-600"></i> 4 TB Bandwidth</li>
+                    <li class="flex items-center gap-2"><i data-lucide="refresh-cw" class="w-4 h-4 text-orange-600"></i> Automated Weekly Backups</li>
+                </ul>
+            </div>
+            <a href="/checkout?plan=cloud-startup&cycle=monthly" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-2xl text-xs font-bold text-center block mt-8 border border-slate-200 transition">
+                Order VPS 4
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

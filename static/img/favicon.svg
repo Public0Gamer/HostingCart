@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
+  <defs>
+    <linearGradient id="fav-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb" />
+      <stop offset="60%" stop-color="#1d4ed8" />
+      <stop offset="100%" stop-color="#ea580c" />
+    </linearGradient>
+    <linearGradient id="fav-bolt" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#ea580c" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="18" fill="url(#fav-grad)" />
+  <path d="M19 25C19 20.5 22.5 17 27 17C30.5 17 33.5 19 34.6 22C35.6 21.3 37 20.8 38.5 20.8C41.5 20.8 44 23.3 44 26.5C46.2 26.9 48 28.8 48 31.2C48 33.8 45.8 36 43.2 36H23C20.2 36 18 33.8 18 31C18 28.7 19.5 26.8 21.5 26.2" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.9" />
+  <path d="M35 27L27 39H33L31 49L41 35H35L37 27Z" fill="url(#fav-bolt)" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round" />
+</svg>

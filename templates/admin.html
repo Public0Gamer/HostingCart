@@ -1,0 +1,1449 @@
+{% extends "base.html" %}
+
+{% block title %}Master WHM Admin Center | {{ brand_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Top Admin Header -->
+    <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-3">
+                <span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Live WHM Control Center</span>
+                </span>
+                <h1 class="text-2xl font-extrabold text-slate-900">Hosting Infrastructure & Operations</h1>
+            </div>
+            <p class="text-xs text-slate-500 mt-1 font-medium">Real-time telemetry, server provisioning, client orders, payment tracking, and audit activity.</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+            <button onclick="cleanAllDemoAccounts()" class="px-3.5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5" title="Clean test database records in 1 click">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                <span>Clear Inactive Test Nodes</span>
+            </button>
+            <button onclick="openFreeProvisionModal()" class="px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-xs font-black flex items-center gap-2 shadow-md shadow-primary-600/20 transition">
+                <i data-lucide="gift" class="w-4 h-4 text-amber-300"></i>
+                <span>Grant Free Website / VIP Client</span>
+            </button>
+            <button onclick="triggerLifecycleCheck()" id="btn-cron-run" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 rounded-xl text-xs font-bold flex items-center gap-2 transition">
+                <i data-lucide="clock" class="w-4 h-4 text-orange-600"></i>
+                <span>Run Expiry Cron</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 4 Key Financial & Traffic Metric Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total Revenue -->
+        <div class="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Paid Revenue</span>
+                <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+                    <i data-lucide="indian-rupee" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <h3 class="text-3xl font-black text-slate-900">₹{{ total_revenue }}</h3>
+            <span class="text-[11px] text-emerald-700 font-bold flex items-center gap-1 mt-1">
+                <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Verified bank & UPI sales
+            </span>
+        </div>
+
+        <!-- MRR -->
+        <div class="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Monthly Recurring (MRR)</span>
+                <div class="w-8 h-8 rounded-lg bg-primary-50 text-primary-700 flex items-center justify-center">
+                    <i data-lucide="repeat" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <h3 class="text-3xl font-black text-slate-900">₹{{ mrr }}</h3>
+            <span class="text-[11px] text-slate-500 mt-1 block">Active subscription monthly value</span>
+        </div>
+
+        <!-- Active Hosting Services -->
+        <div class="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Active Web Nodes</span>
+                <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
+                    <i data-lucide="server" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <h3 class="text-3xl font-black text-slate-900">{{ active_accounts_count }}</h3>
+            <span class="text-[11px] text-blue-700 mt-1 block">Provisioned & running web nodes</span>
+        </div>
+
+        <!-- Real Visitor Traffic Today -->
+        <div class="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Today's Live Traffic</span>
+                <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center">
+                    <i data-lucide="eye" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <h3 class="text-3xl font-black text-slate-900" id="card-views">{{ today_views }}</h3>
+            <span class="text-[11px] text-purple-700 mt-1 block font-semibold">
+                <span id="card-uniques">{{ today_uniques }}</span> Unique Visitors • <span id="card-mobile">{{ today_mobile_views }}</span> Mobile
+            </span>
+        </div>
+    </div>
+
+    
+    <!-- Wholesale Registrar & Automated Profit Cut Card -->
+    <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white shadow-xl border border-indigo-900/50 mb-8">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-indigo-800/40 pb-5 mb-5">
+            <div>
+                <div class="flex items-center gap-2.5">
+                    <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-black uppercase tracking-wider">
+                        100% Automated
+                    </span>
+                    <h2 class="text-xl font-black text-white flex items-center gap-2">
+                        <i data-lucide="cpu" class="w-5 h-5 text-indigo-400"></i>
+                        <span>Wholesale Domain Registrar & Profit Cut Engine</span>
+                    </h2>
+                </div>
+                <p class="text-xs text-indigo-200 mt-1">Customer pays to your UPI &bull; Backend automatically registers ICANN/NIXI domain wholesale &bull; Net profit stays in your account</p>
+            </div>
+            <span class="text-xs bg-indigo-900/60 border border-indigo-700 text-indigo-200 px-3.5 py-1.5 rounded-xl font-mono">
+                Provider: <strong>ConnectReseller / ResellerClub</strong> (Sandbox Active)
+            </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-xs">
+            <div class="p-4 rounded-2xl bg-white/5 border border-white/10">
+                <span class="text-indigo-300 block mb-1">Customer Payments Received</span>
+                <strong class="text-2xl font-black text-white font-mono">₹{{ total_revenue }}</strong>
+                <span class="text-[10px] text-emerald-400 block mt-1">100% directly credited to pawan8550@naviaxis</span>
+            </div>
+            <div class="p-4 rounded-2xl bg-white/5 border border-white/10">
+                <span class="text-indigo-300 block mb-1">Wholesale Registrar Cost (Deducted)</span>
+                <strong class="text-2xl font-black text-amber-300 font-mono">₹{{ total_wholesale_spent or 0.0 }}</strong>
+                <span class="text-[10px] text-indigo-300 block mt-1">Wholesale base cost (e.g. ₹649/.com, ₹399/.in)</span>
+            </div>
+            <div class="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/30">
+                <span class="text-emerald-300 block mb-1">Your Net Profit Cut Retained</span>
+                <strong class="text-2xl font-black text-emerald-400 font-mono">₹{{ total_net_profit or total_revenue }}</strong>
+                <span class="text-[10px] text-emerald-300 block mt-1">Permanent net margin without manual effort</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 100% REAL HARDWARE & SYSTEM TELEMETRY (via psutil) -->
+    <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm mb-8">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-5">
+            <div>
+                <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                    <i data-lucide="cpu" class="w-5 h-5 text-primary-600"></i>
+                    <span>Real-Time Host Hardware & Telemetry</span>
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5 font-medium">
+                    Host OS: <strong class="text-slate-800 font-mono" id="tele-os">{{ system_metrics.os_name }}</strong> • 
+                    Uptime: <strong class="text-slate-800 font-mono" id="tele-uptime">{{ system_metrics.uptime }}</strong>
+                </p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full font-bold flex items-center gap-1.5 shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                    <span>LIVE TRACKING (5s Auto-Sync)</span>
+                </span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- CPU Load -->
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                <div class="flex justify-between text-xs font-bold mb-2">
+                    <span class="text-slate-600 flex items-center gap-1.5">
+                        <i data-lucide="activity" class="w-3.5 h-3.5 text-emerald-600"></i>
+                        <span>CPU Usage (<span id="tele-cpu-cores">{{ system_metrics.cpu_cores }}</span> Cores)</span>
+                    </span>
+                    <span class="text-emerald-700 font-mono" id="tele-cpu-val">{{ system_metrics.cpu_percent }}%</span>
+                </div>
+                <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                    <div id="tele-cpu-bar" class="bg-emerald-600 h-2.5 rounded-full transition-all duration-700" style="width: {{ system_metrics.cpu_percent }}%;"></div>
+                </div>
+            </div>
+
+            <!-- RAM Usage -->
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                <div class="flex justify-between text-xs font-bold mb-2">
+                    <span class="text-slate-600 flex items-center gap-1.5">
+                        <i data-lucide="hard-drive" class="w-3.5 h-3.5 text-primary-600"></i>
+                        <span>RAM Memory</span>
+                    </span>
+                    <span class="text-primary-700 font-mono" id="tele-ram-val">{{ system_metrics.ram_used_gb }} GB / {{ system_metrics.ram_total_gb }} GB</span>
+                </div>
+                <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                    <div id="tele-ram-bar" class="bg-primary-600 h-2.5 rounded-full transition-all duration-700" style="width: {{ system_metrics.ram_percent }}%;"></div>
+                </div>
+            </div>
+
+            <!-- Storage -->
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                <div class="flex justify-between text-xs font-bold mb-2">
+                    <span class="text-slate-600 flex items-center gap-1.5">
+                        <i data-lucide="database" class="w-3.5 h-3.5 text-blue-600"></i>
+                        <span>NVMe Disk Storage</span>
+                    </span>
+                    <span class="text-blue-700 font-mono" id="tele-disk-val">{{ system_metrics.disk_used_gb }} GB / {{ system_metrics.disk_total_gb }} GB</span>
+                </div>
+                <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                    <div id="tele-disk-bar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-700" style="width: {{ system_metrics.disk_percent }}%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Network Bandwidth Counter -->
+        <div class="mt-4 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between text-xs text-slate-500 font-mono">
+            <div>
+                <span>Network Data Sent: <strong class="text-slate-800" id="tele-net-sent">{{ system_metrics.net_sent_mb }} MB</strong></span>
+                <span class="mx-2">•</span>
+                <span>Network Data Recv: <strong class="text-slate-800" id="tele-net-recv">{{ system_metrics.net_recv_mb }} MB</strong></span>
+            </div>
+            <div class="text-[11px] text-slate-400 font-sans">
+                Real hardware readings refreshed automatically via python psutil daemon.
+            </div>
+        </div>
+    </div>
+
+    <!-- ORDERS & PAYMENT TRANSACTIONS MANAGER -->
+    <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm mb-8" id="section-orders">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+            <div>
+                <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                    <i data-lucide="shopping-cart" class="w-5 h-5 text-orange-600"></i>
+                    <span>Orders & Payment Transactions ({{ orders|length }})</span>
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">Track incoming orders, verify UPI payments, and auto-provision accounts.</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg">
+                    Pending Verification: <strong id="orders-pending-count">{{ orders|selectattr('payment_status', 'equalto', 'pending')|list|length }}</strong>
+                </span>
+            </div>
+        </div>
+
+        {% if not orders %}
+            <div class="p-6 text-center bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-500">
+                No orders placed yet. When a customer pays via UPI QR, it will appear here for 1-click verification!
+            </div>
+        {% else %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                        <tr>
+                            <th class="p-3">Order # / Date</th>
+                            <th class="p-3">Customer</th>
+                            <th class="p-3">Domain / Plan</th>
+                            <th class="p-3">Amount</th>
+                            <th class="p-3">Method</th>
+                            <th class="p-3">Status</th>
+                            <th class="p-3 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 font-mono">
+                        {% for ord in orders %}
+                            <tr class="hover:bg-slate-50 transition" id="order-row-{{ ord.id }}">
+                                <td class="p-3">
+                                    <strong class="text-slate-900 font-bold block">{{ ord.order_number }}</strong>
+                                    <span class="text-[11px] text-slate-400 font-sans">{{ ord.created_at }}</span>
+                                </td>
+                                <td class="p-3 font-sans">
+                                    <strong class="text-slate-900 block">{{ ord.user_name }}</strong>
+                                    <span class="text-[11px] text-slate-500 block">{{ ord.user_email }}</span>
+                                    {% if ord.user_phone %}
+                                    <a href="https://wa.me/{{ ord.user_phone|replace('+', '')|replace(' ', '') }}" target="_blank" class="text-[10px] text-emerald-700 hover:underline flex items-center gap-1 mt-0.5">
+                                        <i data-lucide="phone" class="w-3 h-3"></i> {{ ord.user_phone }}
+                                    </a>
+                                    {% endif %}
+                                </td>
+                                <td class="p-3 font-sans">
+                                    <a href="http://{{ ord.domain_name }}" target="_blank" class="text-primary-700 hover:underline font-mono font-bold block">
+                                        {{ ord.domain_name }}
+                                    </a>
+                                    <span class="text-[11px] text-slate-600 block">{{ ord.plan_name }} ({{ ord.billing_cycle }})</span>
+                                </td>
+                                <td class="p-3">
+                                    <strong class="text-slate-900 text-sm font-bold block">₹{{ ord.total_amount }}</strong>
+                                    {% if ord.discount_amount > 0 %}
+                                    <span class="text-[10px] text-emerald-700 font-sans font-semibold">Save ₹{{ ord.discount_amount }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="p-3 font-sans">
+                                    <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold 
+                                        {% if ord.payment_method == 'UPI_QR' %}bg-purple-50 text-purple-700 border border-purple-200
+                                        {% elif ord.payment_method == 'ADMIN_FREE_GRANT' %}bg-amber-50 text-amber-800 border border-amber-200
+                                        {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+                                        {{ ord.payment_method }}
+                                    </span>
+                                </td>
+                                <td class="p-3 font-sans">
+                                    <span id="order-status-badge-{{ ord.id }}" class="px-2.5 py-1 rounded text-[10px] uppercase font-black 
+                                        {% if ord.payment_status == 'paid' %}bg-emerald-50 text-emerald-700 border border-emerald-200
+                                        {% else %}bg-amber-100 text-amber-900 border border-amber-300 ring-2 ring-amber-400/20 animate-pulse{% endif %}">
+                                        {{ ord.payment_status }}
+                                    </span>
+                                </td>
+                                <td class="p-3 text-right font-sans space-x-1">
+                                    {% if ord.payment_status == 'pending' %}
+                                    <button onclick="verifyAdminOrder({{ ord.id }})" id="btn-verify-{{ ord.id }}" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition shadow-sm inline-flex items-center gap-1" title="Confirm payment & auto-provision">
+                                        <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                                        <span>Verify & Activate</span>
+                                    </button>
+                                    {% endif %}
+                                    <a href="/invoice/{{ ord.id }}" target="_blank" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold inline-flex items-center gap-1 transition" title="View Customer Invoice">
+                                        <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+                                        <span>Invoice</span>
+                                    </a>
+                                    <button onclick="deleteAdminOrder({{ ord.id }})" class="p-1.5 text-slate-400 hover:text-rose-600 transition rounded-lg hover:bg-rose-50" title="Delete Order">
+                                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Active Client Hosting Services (Web Nodes) Table -->
+    <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm mb-8">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+            <div>
+                <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                    <i data-lucide="layers" class="w-5 h-5 text-primary-600"></i>
+                    <span>Active Client Hosting Services (<span id="accounts-count">{{ accounts|length }}</span>)</span>
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">Control live cPanel accounts, view credentials, suspend, or manage web nodes.</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="cleanAllDemoAccounts()" class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm" title="Clean test database records in 1 click">
+                    <i data-lucide="trash" class="w-3.5 h-3.5"></i>
+                    <span>🧹 Clear Test Data</span>
+                </button>
+                <button onclick="openFreeProvisionModal()" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                    <span>Add / Grant Hosting</span>
+                </button>
+            </div>
+        </div>
+
+        {% if not accounts %}
+            <div class="p-8 text-center bg-slate-50 rounded-2xl border border-slate-200" id="empty-accounts-box">
+                <i data-lucide="server" class="w-10 h-10 text-slate-300 mx-auto mb-2"></i>
+                <h4 class="text-sm font-bold text-slate-700">No Active Hosting Services Yet</h4>
+                <p class="text-xs text-slate-500 mt-1">When customers buy a plan or when you click "Grant Free Website", provisioned accounts will show here with full cPanel management.</p>
+                <button onclick="openFreeProvisionModal()" class="mt-4 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-xs font-bold transition inline-flex items-center gap-2 shadow-sm">
+                    <i data-lucide="gift" class="w-4 h-4"></i>
+                    <span>Grant Free Website / VIP Client</span>
+                </button>
+            </div>
+        {% else %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                        <tr>
+                            <th class="p-3">Client</th>
+                            <th class="p-3">Domain</th>
+                            <th class="p-3">Plan</th>
+                            <th class="p-3">cPanel User</th>
+                            <th class="p-3">Status</th>
+                            <th class="p-3">Expires At</th>
+                            <th class="p-3 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 font-mono">
+                        {% for acc in accounts %}
+                            <tr class="hover:bg-slate-50 transition" id="account-row-{{ acc.id }}">
+                                <td class="p-3 font-sans">
+                                    <strong class="text-slate-900 block">{{ acc.user_name }}</strong>
+                                    <span class="text-[11px] text-slate-500">{{ acc.user_email }}</span>
+                                </td>
+                                <td class="p-3 text-primary-700 font-bold">
+                                    <a href="http://{{ acc.domain_name }}" target="_blank" class="hover:underline flex items-center gap-1">
+                                        {{ acc.domain_name }}
+                                        <i data-lucide="external-link" class="w-3 h-3 text-slate-400"></i>
+                                    </a>
+                                </td>
+                                <td class="p-3 text-slate-800 font-sans">{{ acc.plan_name }}</td>
+                                <td class="p-3 text-slate-600 font-bold">{{ acc.cpanel_username }}</td>
+                                <td class="p-3 font-sans">
+                                    <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold 
+                                        {% if acc.status == 'active' %}bg-emerald-50 text-emerald-700 border border-emerald-200
+                                        {% elif acc.status == 'suspended' %}bg-amber-50 text-amber-800 border border-amber-200
+                                        {% else %}bg-slate-100 text-slate-600 border border-slate-200{% endif %}">
+                                        {{ acc.status }}
+                                    </span>
+                                </td>
+                                <td class="p-3 text-slate-500">{{ acc.expires_at }}</td>
+                                <td class="p-3 text-right font-sans space-x-1">
+                                    <!-- View Credentials & cPanel Button -->
+                                    <button onclick="openAccountDetailsModal({{ acc.id }})" class="px-2.5 py-1.5 bg-primary-50 hover:bg-primary-100 text-primary-700 border border-primary-200 rounded-lg text-xs font-bold inline-flex items-center gap-1 transition" title="View cPanel credentials and server details">
+                                        <i data-lucide="key" class="w-3 h-3"></i>
+                                        <span>Manage</span>
+                                    </button>
+
+                                    <!-- Suspend / Reactivate Button -->
+                                    {% if acc.status == 'active' %}
+                                        <button onclick="handleAccountAction({{ acc.id }}, 'suspend')" class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-xs font-bold transition">
+                                            Suspend
+                                        </button>
+                                    {% else %}
+                                        <button onclick="handleAccountAction({{ acc.id }}, 'unsuspend')" class="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-bold transition">
+                                            Reactivate
+                                        </button>
+                                    {% endif %}
+
+                                    <!-- Delete Button -->
+                                    <button onclick="handleAccountAction({{ acc.id }}, 'delete')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Permanently delete account">
+                                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Two Columns: Live Activity Audit Feed & Registered Clients -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+        <!-- Live Activity Audit Log (7 Cols) -->
+        <div class="lg:col-span-7 p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                    <i data-lucide="radio" class="w-5 h-5 text-emerald-600"></i>
+                    <span>Live Activity & Audit Feed</span>
+                </h3>
+                <span class="text-[11px] text-slate-500 font-mono">Latest real-time events</span>
+            </div>
+
+            {% if not activity_logs %}
+                <p class="text-xs text-slate-500 py-4">No system activity logged yet.</p>
+            {% else %}
+                <div class="space-y-2.5 text-xs max-h-96 overflow-y-auto pr-1">
+                    {% for act in activity_logs %}
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start justify-between gap-3">
+                            <div class="flex items-start gap-2.5">
+                                <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider mt-0.5 
+                                    {% if act.event_type == 'ORDER' %}bg-orange-100 text-orange-800
+                                    {% elif act.event_type == 'PAYMENT' %}bg-emerald-100 text-emerald-800
+                                    {% elif act.event_type == 'ADMIN' %}bg-purple-100 text-purple-800
+                                    {% elif act.event_type == 'REVIEW' %}bg-amber-100 text-amber-800
+                                    {% else %}bg-slate-200 text-slate-700{% endif %}">
+                                    {{ act.event_type }}
+                                </span>
+                                <div>
+                                    <p class="text-slate-900 font-semibold">{{ act.description }}</p>
+                                    <p class="text-[10px] text-slate-400 font-mono mt-0.5">
+                                        IP: {{ act.ip_address }} {% if act.user_info %}• {{ act.user_info }}{% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] text-slate-400 font-mono whitespace-nowrap">{{ act.created_at }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Registered Clients Directory (5 Cols) -->
+        <div class="lg:col-span-5 p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                    <i data-lucide="users" class="w-5 h-5 text-purple-600"></i>
+                    <span>Client Directory ({{ clients|length }})</span>
+                </h3>
+                <span class="text-[11px] text-purple-700 font-bold bg-purple-50 px-2 py-0.5 rounded">All registered</span>
+            </div>
+
+            {% if not clients %}
+                <p class="text-xs text-slate-500 py-4">No registered clients yet.</p>
+            {% else %}
+                <div class="space-y-3 text-xs max-h-96 overflow-y-auto pr-1">
+                    {% for cl in clients %}
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                            <div>
+                                <strong class="text-slate-900 block text-xs">{{ cl.name }}</strong>
+                                <span class="text-[11px] text-slate-500 block">{{ cl.email }}</span>
+                                <span class="text-[10px] text-slate-400 mt-0.5 block">
+                                    Services: <strong>{{ cl.accounts_count }}</strong> • Total Paid: <strong class="text-emerald-700">₹{{ cl.total_spent }}</strong>
+                                </span>
+                            </div>
+                            <div class="text-right">
+                                {% if cl.phone %}
+                                <a href="https://wa.me/{{ cl.phone|replace('+', '')|replace(' ', '') }}?text=Hello%20{{ cl.name }}!%20HostingCart%20support%20team%20here." target="_blank" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold inline-flex items-center gap-1 transition" title="Message client on WhatsApp">
+                                    <i data-lucide="message-circle" class="w-3 h-3"></i> WhatsApp
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Two Columns: Coupons & Server Adapter Settings -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+        <!-- Coupons Manager (5 Cols) -->
+        <div class="lg:col-span-5 p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm">
+            <h3 class="text-base font-extrabold text-slate-900 mb-4 flex items-center gap-2">
+                <i data-lucide="tag" class="w-5 h-5 text-orange-600"></i>
+                <span>Promo Discount Codes</span>
+            </h3>
+
+            <!-- Add coupon form -->
+            <form onsubmit="createAdminCoupon(event)" class="space-y-3 mb-5 p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div class="sm:col-span-1">
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Coupon Code</label>
+                        <input type="text" id="new-coupon-code" placeholder="e.g. FLAT100" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs uppercase font-mono text-slate-900 font-bold focus:outline-none focus:border-primary-600" required>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Discount Type</label>
+                        <select id="new-coupon-type" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-bold focus:outline-none focus:border-primary-600">
+                            <option value="fixed">Flat Rupee (₹ OFF)</option>
+                            <option value="percent">Percentage (% OFF)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Value (Amount)</label>
+                        <input type="number" id="new-coupon-value" placeholder="e.g. 100 or 20" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-bold focus:outline-none focus:border-primary-600" value="100" min="1" required>
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center justify-center gap-1.5">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                    <span>Create & Activate Promo Code</span>
+                </button>
+            </form>
+
+            <div class="space-y-2 font-mono text-xs">
+                {% for c in coupons %}
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between" id="coupon-row-{{ c.id }}">
+                        <div>
+                            <strong class="text-slate-900">{{ c.code }}</strong>
+                            <span class="text-emerald-700 font-sans ml-2 font-bold">
+                                {% if c.discount_type == 'fixed' %}
+                                    (Flat ₹{{ c.discount_value|int }} OFF)
+                                {% else %}
+                                    ({{ c.discount_value|int or c.discount_percent }}% OFF)
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold font-sans">ACTIVE</span>
+                            <button onclick="deleteAdminCoupon({{ c.id }})" class="text-slate-400 hover:text-rose-600 transition p-1" title="Delete Coupon">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+                <!-- STEP 2 & STEP 3: AUTOMATION & INFRASTRUCTURE STATION (7 Cols) -->
+        <div class="lg:col-span-7 space-y-6">
+            <!-- STEP 1: Payment Gateways & Banking Settings (UPI & Razorpay & Cashfree) -->
+            <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-7 h-7 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-xs font-black">1</span>
+                        <div>
+                            <h3 class="text-base font-extrabold text-slate-900">Payment Gateways & Bank Settlement</h3>
+                            <p class="text-[11px] text-slate-500">Direct UPI (0% Fee, instant settlement) & Razorpay / Cashfree APIs</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-mono px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">
+                        100% Retained Revenue
+                    </span>
+                </div>
+
+                <form onsubmit="savePaymentGatewaySettings(event)" class="space-y-3.5 text-xs">
+                    <!-- Direct UPI Section -->
+                    <div class="p-3.5 rounded-2xl bg-blue-50/50 border border-blue-100">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded bg-blue-600 text-white text-[9px] font-black uppercase">0% Fee</span>
+                                <strong class="text-slate-900 text-xs">Direct Instant UPI (Direct to Bank Account)</strong>
+                            </div>
+                            <span class="text-[10px] text-blue-700 font-bold">Instant 2-Sec Settlement</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Your Primary UPI ID (VPA)</label>
+                                <input type="text" id="setting-upi" value="{{ settings.upi_id or 'pawan8550@naviaxis' }}" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 font-mono font-bold" placeholder="e.g. pawan8550@naviaxis">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Payee Display Name</label>
+                                <input type="text" id="setting-payee-name" value="{{ settings.brand_name or 'HostingCart (Pawan)' }}" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 font-semibold" placeholder="HostingCart (Pawan)">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Razorpay Section -->
+                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <strong class="text-slate-900 text-xs">Razorpay Payment Gateway (Cards & NetBanking)</strong>
+                            <a href="https://dashboard.razorpay.com/#/access/api-keys" target="_blank" class="text-[11px] font-bold text-blue-600 hover:underline flex items-center gap-1">
+                                <span>Get API Keys</span>
+                                <i data-lucide="external-link" class="w-3 h-3"></i>
+                            </a>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Razorpay Key ID</label>
+                                <input type="text" id="setting-rzp-key" value="{{ settings.razorpay_key_id or 'rzp_test_ApexHost123' }}" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 font-mono" placeholder="rzp_live_... or rzp_test_...">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Razorpay Key Secret</label>
+                                <input type="password" id="setting-rzp-secret" value="{{ settings.razorpay_key_secret or 'test_secret_apex_key' }}" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 font-mono" placeholder="Live or Test Secret Key">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cashfree Section -->
+                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <strong class="text-slate-900 text-xs">Cashfree Gateway (Cards, Wallets, PayLater)</strong>
+                            <a href="https://merchant.cashfree.com/merchants/login" target="_blank" class="text-[11px] font-bold text-blue-600 hover:underline flex items-center gap-1">
+                                <span>Get Cashfree Keys</span>
+                                <i data-lucide="external-link" class="w-3 h-3"></i>
+                            </a>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Cashfree App ID</label>
+                                <input type="text" id="setting-cf-id" value="{{ settings.cashfree_app_id or '' }}" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 font-mono" placeholder="Enter Cashfree App ID">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Cashfree Secret Key</label>
+                                <input type="password" id="setting-cf-secret" value="{{ settings.cashfree_secret_key or '' }}" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 font-mono" placeholder="Enter Cashfree Secret Key">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition shadow-sm flex items-center justify-center gap-2">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        <span>Save Payment & Gateway Credentials</span>
+                    </button>
+                </form>
+            </div>
+            <!-- STEP 2: Wholesale Domain Registrar Card -->
+            <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-7 h-7 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-xs font-black">2</span>
+                        <div>
+                            <h3 class="text-base font-extrabold text-slate-900">Wholesale Domain Registrar API</h3>
+                            <p class="text-[11px] text-slate-500">ConnectReseller / ResellerClub auto-registration engine</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-mono px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold" id="registrar-mode-badge">
+                        {% if settings.registrar_sandbox == '1' %}Sandbox (₹0 Virtual){% else %}LIVE ICANN Active{% endif %}
+                    </span>
+                </div>
+
+                <form onsubmit="saveRegistrarSettings(event)" class="space-y-3.5 text-xs">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Wholesale Provider</label>
+                            <select id="setting-reg-provider" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-semibold focus:border-indigo-600">
+                                <option value="connectreseller" {% if settings.registrar_provider == 'connectreseller' %}selected{% endif %}>ConnectReseller (Recommended India/Global)</option>
+                                <option value="resellerclub" {% if settings.registrar_provider == 'resellerclub' %}selected{% endif %}>ResellerClub</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Reseller ID</label>
+                            <input type="text" id="setting-reg-reseller-id" value="{{ settings.registrar_reseller_id or '100293' }}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono" placeholder="e.g. 100293">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Wholesale API Key</label>
+                        <input type="password" id="setting-reg-api-key" value="{{ settings.registrar_api_key or 'SANDBOX_DEMO_KEY' }}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono" placeholder="Enter ConnectReseller API Key">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
+                            <input type="checkbox" id="setting-reg-sandbox" value="1" {% if settings.registrar_sandbox == '1' %}checked{% endif %} class="rounded text-indigo-600">
+                            <div>
+                                <span class="font-bold text-slate-800 block text-[11px]">Sandbox Test Mode</span>
+                                <span class="text-[10px] text-slate-500">Uses ₹0 virtual sandbox balance</span>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
+                            <input type="checkbox" id="setting-reg-auto" value="1" {% if settings.registrar_auto_register == '1' %}checked{% endif %} class="rounded text-indigo-600">
+                            <div>
+                                <span class="font-bold text-slate-800 block text-[11px]">Instant Auto-Register</span>
+                                <span class="text-[10px] text-slate-500">Auto buy domain on payment</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="flex items-center gap-2 pt-2">
+                        <button type="submit" class="flex-grow py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition shadow-sm">
+                            Save Registrar Settings
+                        </button>
+                        <button type="button" onclick="testRegistrarConnection()" id="btn-test-registrar" class="px-4 py-2.5 bg-slate-100 hover:bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold rounded-xl transition flex items-center gap-1.5">
+                            <i data-lucide="zap" class="w-3.5 h-3.5 text-indigo-600"></i>
+                            <span>Test Connection</span>
+                        </button>
+                    </div>
+                </form>
+
+                <div id="registrar-test-result" class="hidden mt-3 p-3 rounded-xl text-xs font-mono"></div>
+            </div>
+
+            <!-- STEP 3: Hosting Server Node Card (HestiaCP / VPS) -->
+            <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-7 h-7 rounded-xl bg-primary-600 text-white flex items-center justify-center text-xs font-black">3</span>
+                        <div>
+                            <h3 class="text-base font-extrabold text-slate-900">Hosting Server Node & Control Panel</h3>
+                            <p class="text-[11px] text-slate-500">HestiaCP / CyberPanel API auto-provisioning adapter</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-mono px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">
+                        Node: 129.154.22.84
+                    </span>
+                </div>
+
+                <form onsubmit="saveServerSettings(event)" class="space-y-3.5 text-xs">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Server Adapter Type</label>
+                            <select id="setting-adapter" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-semibold focus:border-primary-600">
+                                <option value="mock" {% if settings.adapter_type == 'mock' %}selected{% endif %}>Mock Adapter (Zero Cost Sandbox)</option>
+                                <option value="hestiacp" {% if settings.adapter_type == 'hestiacp' %}selected{% endif %}>HestiaCP (Oracle Free Tier / VPS)</option>
+                                <option value="cyberpanel" {% if settings.adapter_type == 'cyberpanel' %}selected{% endif %}>CyberPanel (OpenLiteSpeed)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Server Public IP</label>
+                            <input type="text" id="setting-ip" value="{{ settings.server_public_ip or '129.154.22.84' }}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Panel Host URL</label>
+                            <input type="text" id="setting-host" value="{{ settings.hestia_host or 'https://129.154.22.84:8083' }}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Panel Admin Password / API Key</label>
+                            <input type="password" id="setting-key" value="{{ settings.hestia_password or 'secret_api_key' }}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 pt-2">
+                        <button type="submit" class="flex-grow py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition shadow-sm">
+                            Save Server Node
+                        </button>
+                        <button type="button" onclick="testServerNodeConnection()" id="btn-test-server" class="px-4 py-2.5 bg-slate-100 hover:bg-primary-50 text-primary-700 border border-primary-200 font-bold rounded-xl transition flex items-center gap-1.5">
+                            <i data-lucide="server" class="w-3.5 h-3.5 text-primary-600"></i>
+                            <span>Test Server Node</span>
+                        </button>
+                    </div>
+                </form>
+
+                <div id="server-test-result" class="hidden mt-3 p-3 rounded-xl text-xs font-mono"></div>
+
+                <!-- 1-Click VPS Command Helper -->
+                <div class="mt-4 p-3 rounded-2xl bg-slate-900 text-slate-200 font-mono text-[11px] border border-slate-800">
+                    <div class="flex items-center justify-between mb-1.5 text-slate-400">
+                        <span class="text-[10px] uppercase tracking-wider font-bold">1-Command HestiaCP VPS Install (Ubuntu 22.04 / Oracle Linux):</span>
+                        <button onclick="navigator.clipboard.writeText('wget https://raw.githubusercontent.com/hestiacp/hestiacp/release/install/hst-install.sh && bash hst-install.sh -y -f'); alert('Copied to clipboard!')" class="text-primary-400 hover:text-white transition text-[10px]">
+                            Copy Command
+                        </button>
+                    </div>
+                    <code class="text-emerald-400 select-all block break-all">wget https://raw.githubusercontent.com/hestiacp/hestiacp/release/install/hst-install.sh && bash hst-install.sh -y -f</code>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Customer Support Ticket Desk -->
+    <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm mb-8">
+        <h3 class="text-base font-extrabold text-slate-900 mb-4 flex items-center gap-2">
+            <i data-lucide="help-circle" class="w-5 h-5 text-amber-600"></i>
+            <span>Customer Support Desk ({{ tickets|length }})</span>
+        </h3>
+
+        {% if not tickets %}
+            <p class="text-xs text-slate-500 py-4">No open tickets at this time.</p>
+        {% else %}
+            <div class="space-y-3 text-xs">
+                {% for t in tickets %}
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <strong class="text-slate-900 text-sm">#{{ t.ticket_number }}: {{ t.subject }}</strong>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold 
+                                    {% if t.status == 'Open' %}bg-amber-50 text-amber-800 border border-amber-200
+                                    {% elif t.status == 'Answered' %}bg-emerald-50 text-emerald-800 border border-emerald-200
+                                    {% else %}bg-slate-100 text-slate-600{% endif %}">
+                                    {{ t.status }}
+                                </span>
+                            </div>
+                            <span class="text-slate-500">Client: {{ t.user_name }} ({{ t.user_email }} • Dept: {{ t.category }} • {{ t.updated_at }})</span>
+                        </div>
+                        <button onclick="adminReplyToTicket({{ t.id }}, '{{ t.ticket_number }}')" class="px-3.5 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold flex items-center gap-1.5 transition">
+                            <i data-lucide="message-square" class="w-3.5 h-3.5"></i> Reply to Client
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Customer Reviews Moderation Section -->
+    <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                <i data-lucide="star" class="w-5 h-5 text-amber-500 fill-amber-500"></i>
+                <span>Customer Reviews Moderation ({{ reviews|length }})</span>
+            </h3>
+            <span class="text-xs text-slate-500">Public reviews shown on storefront</span>
+        </div>
+
+        {% if not reviews %}
+            <p class="text-xs text-slate-500 py-4">No reviews submitted yet.</p>
+        {% else %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                        <tr>
+                            <th class="p-3">Client / Name</th>
+                            <th class="p-3">Role / City</th>
+                            <th class="p-3">Rating</th>
+                            <th class="p-3">Review Feedback</th>
+                            <th class="p-3">Date</th>
+                            <th class="p-3 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for r in reviews %}
+                        <tr class="hover:bg-slate-50 transition" id="review-row-{{ r.id }}">
+                            <td class="p-3 font-bold text-slate-900">{{ r.name }}</td>
+                            <td class="p-3 text-slate-600">{{ r.role_or_city }}</td>
+                            <td class="p-3">
+                                <span class="text-amber-500 font-bold flex items-center gap-1">
+                                    {{ r.rating }} ★
+                                </span>
+                            </td>
+                            <td class="p-3 text-slate-700 max-w-md italic leading-relaxed">"{{ r.comment }}"</td>
+                            <td class="p-3 text-slate-400 font-mono text-[11px]">{{ r.created_at }}</td>
+                            <td class="p-3 text-right">
+                                <button onclick="deleteReview({{ r.id }})" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded text-[11px] font-bold transition">
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal: Account Details & cPanel Management -->
+<div id="admin-account-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-7 shadow-2xl relative">
+        <button onclick="closeAccountDetailsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+        
+        <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-2xl bg-primary-50 text-primary-600 flex items-center justify-center">
+                <i data-lucide="server" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-black text-slate-900" id="modal-acc-domain">domain.com</h3>
+                <p class="text-xs text-slate-500">Live Hosting Node & cPanel Credentials</p>
+            </div>
+        </div>
+
+        <div class="space-y-3 text-xs bg-slate-50 p-4 rounded-2xl border border-slate-200 font-mono">
+            <div class="flex justify-between items-center py-1 border-b border-slate-200">
+                <span class="text-slate-500 font-sans font-semibold">Client Name:</span>
+                <strong class="text-slate-900 font-sans" id="modal-acc-client">Client</strong>
+            </div>
+            <div class="flex justify-between items-center py-1 border-b border-slate-200">
+                <span class="text-slate-500 font-sans font-semibold">Plan Package:</span>
+                <strong class="text-primary-700 font-sans" id="modal-acc-plan">Plan</strong>
+            </div>
+            <div class="flex justify-between items-center py-1 border-b border-slate-200">
+                <span class="text-slate-500 font-sans font-semibold">cPanel Username:</span>
+                <div class="flex items-center gap-2">
+                    <strong class="text-slate-900" id="modal-acc-user">user</strong>
+                    <button onclick="copyText(document.getElementById('modal-acc-user').innerText, this)" class="p-1 hover:bg-slate-200 rounded text-slate-500 transition" title="Copy">
+                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="flex justify-between items-center py-1 border-b border-slate-200">
+                <span class="text-slate-500 font-sans font-semibold">cPanel Password:</span>
+                <div class="flex items-center gap-2">
+                    <strong class="text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200" id="modal-acc-pass">pass</strong>
+                    <button onclick="copyText(document.getElementById('modal-acc-pass').innerText, this)" class="p-1 hover:bg-slate-200 rounded text-slate-500 transition" title="Copy">
+                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="flex justify-between items-center py-1 border-b border-slate-200">
+                <span class="text-slate-500 font-sans font-semibold">Nameservers:</span>
+                <strong class="text-slate-700" id="modal-acc-ns">ns1 / ns2</strong>
+            </div>
+            <div class="flex justify-between items-center py-1 border-b border-slate-200">
+                <span class="text-slate-500 font-sans font-semibold">Server IP:</span>
+                <strong class="text-slate-700" id="modal-acc-ip">129.154.22.84</strong>
+            </div>
+            <div class="flex justify-between items-center py-1">
+                <span class="text-slate-500 font-sans font-semibold">Expires On:</span>
+                <strong class="text-slate-700" id="modal-acc-expires">2027</strong>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mt-4">
+            <a id="modal-acc-cpanel-link" href="#" target="_blank" class="py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition">
+                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                <span>Open Control Panel</span>
+            </a>
+            <a id="modal-acc-whatsapp" href="#" target="_blank" class="py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition">
+                <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                <span>Share on WhatsApp</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Grant Free Website / VIP Client Account -->
+<div id="admin-free-provision-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-7 shadow-2xl relative">
+        <button onclick="closeFreeProvisionModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+        
+        <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-2xl bg-primary-50 text-primary-600 flex items-center justify-center">
+                <i data-lucide="gift" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-black text-slate-900">Grant Free Website & Hosting</h3>
+                <p class="text-xs text-slate-500">Provision ₹0 full-featured hosting account for VIPs or friends</p>
+            </div>
+        </div>
+
+        <form id="free-provision-form" onsubmit="submitFreeProvision(event)" class="space-y-4 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Client Full Name *</label>
+                    <input type="text" id="free-client-name" placeholder="e.g. Ramesh Verma" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-primary-600">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Client Email Address *</label>
+                    <input type="email" id="free-client-email" placeholder="e.g. ramesh@gmail.com" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-primary-600">
+                </div>
+            </div>
+
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Domain Name to Grant *</label>
+                <input type="text" id="free-domain-name" placeholder="e.g. rameshstore.in or myfriendbrand.com" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono font-bold focus:outline-none focus:border-primary-600">
+                <span class="text-[10px] text-slate-500 mt-1 block">Free DNS zone, SSL certificate, and cPanel will be automatically bound.</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Hosting Plan Package *</label>
+                    <select id="free-plan-id" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-bold focus:outline-none focus:border-primary-600">
+                        {% for p in plans %}
+                        <option value="{{ p.id }}">{{ p.name }} (₹{{ p.price_monthly }}/mo)</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Free Validity Duration *</label>
+                    <select id="free-duration" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-bold focus:outline-none focus:border-primary-600">
+                        <option value="12" selected>1 Year Free (Recommended)</option>
+                        <option value="1">1 Month Free Trial</option>
+                        <option value="6">6 Months Free</option>
+                        <option value="24">2 Years Free</option>
+                        <option value="120">10 Years / Lifetime Free</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Admin Internal Note / Reason</label>
+                <input type="text" id="free-note" placeholder="e.g. Kanpur offline client paid in cash / VIP Friend" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-primary-600">
+            </div>
+
+            <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-800 font-semibold flex items-center gap-2">
+                <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                <span>Cost: ₹0.00 (Zero Charge). System will auto-issue HW-FREE order and activate instantly.</span>
+            </div>
+
+            <button type="submit" id="btn-free-provision" class="w-full py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-black text-xs rounded-xl shadow-md shadow-primary-600/25 transition flex items-center justify-center gap-2">
+                <i data-lucide="rocket" class="w-4 h-4"></i>
+                <span>Activate & Provision Free Website Now</span>
+            </button>
+        </form>
+
+        <!-- Result Card (shown after provisioning) -->
+        <div id="free-provision-success" class="hidden mt-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-2">
+            <h4 class="font-bold text-emerald-800 flex items-center gap-1.5">
+                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i> Account Provisioned Successfully!
+            </h4>
+            <div class="font-mono text-[11px] space-y-1 text-slate-700 bg-white p-3 rounded-xl border border-slate-200" id="free-credentials-box">
+            </div>
+            <div class="flex gap-2 pt-2">
+                <a id="free-whatsapp-share" href="#" target="_blank" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-center transition flex items-center justify-center gap-1.5">
+                    <i data-lucide="message-circle" class="w-3.5 h-3.5"></i> Share on WhatsApp
+                </a>
+                <button onclick="window.location.reload()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-xl transition">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Admin Reply to Ticket -->
+<div id="admin-reply-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative">
+        <button onclick="document.getElementById('admin-reply-modal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-xl">&times;</button>
+        <h3 class="text-base font-extrabold text-slate-900 mb-2" id="admin-reply-title">Reply to Customer Ticket</h3>
+        <input type="hidden" id="admin-ticket-id">
+        <div class="space-y-3 text-xs mt-4">
+            <textarea id="admin-reply-text" rows="4" placeholder="Enter official support engineer response..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-primary-600" required></textarea>
+            <button onclick="submitAdminTicketReply()" class="w-full py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition">
+                Send Answer & Update Ticket
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 1. LIVE HARDWARE & TRAFFIC POLLING (Every 5 seconds)
+    setInterval(async () => {
+        try {
+            const res = await fetch('/api/admin/system/metrics');
+            const d = await res.json();
+            if (d.success) {
+                // Update Hardware Gauges
+                const osEl = document.getElementById('tele-os');
+                if (osEl) osEl.innerText = d.os_name;
+                const upEl = document.getElementById('tele-uptime');
+                if (upEl) upEl.innerText = d.uptime;
+                const cpuCor = document.getElementById('tele-cpu-cores');
+                if (cpuCor) cpuCor.innerText = d.cpu_cores;
+                const cpuVal = document.getElementById('tele-cpu-val');
+                if (cpuVal) cpuVal.innerText = `${d.cpu_percent}%`;
+                const cpuBar = document.getElementById('tele-cpu-bar');
+                if (cpuBar) cpuBar.style.width = `${Math.min(100, d.cpu_percent)}%`;
+
+                const ramVal = document.getElementById('tele-ram-val');
+                if (ramVal) ramVal.innerText = `${d.ram_used_gb} GB / ${d.ram_total_gb} GB`;
+                const ramBar = document.getElementById('tele-ram-bar');
+                if (ramBar) ramBar.style.width = `${Math.min(100, d.ram_percent)}%`;
+
+                const diskVal = document.getElementById('tele-disk-val');
+                if (diskVal) diskVal.innerText = `${d.disk_used_gb} GB / ${d.disk_total_gb} GB`;
+                const diskBar = document.getElementById('tele-disk-bar');
+                if (diskBar) diskBar.style.width = `${Math.min(100, d.disk_percent)}%`;
+
+                const netSent = document.getElementById('tele-net-sent');
+                if (netSent) netSent.innerText = `${d.net_sent_mb} MB`;
+                const netRecv = document.getElementById('tele-net-recv');
+                if (netRecv) netRecv.innerText = `${d.net_recv_mb} MB`;
+
+                // Update Traffic
+                const cv = document.getElementById('card-views');
+                if (cv) cv.innerText = d.today_views;
+                const cu = document.getElementById('card-uniques');
+                if (cu) cu.innerText = d.today_uniques;
+                const cm = document.getElementById('card-mobile');
+                if (cm) cm.innerText = d.today_mobile;
+                const op = document.getElementById('orders-pending-count');
+                if (op) op.innerText = d.pending_orders;
+            }
+        } catch (e) {
+            // Ignore background polling network drop
+        }
+    }, 5000);
+
+    // 2. ORDER VERIFICATION (1-Click UPI Payment Confirmation & Node Provisioning)
+    async function verifyAdminOrder(orderId) {
+        if (!confirm('Are you sure you want to verify this payment? System will mark it as PAID and auto-provision the client hosting node immediately.')) return;
+
+        const btn = document.getElementById(`btn-verify-${orderId}`);
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = `<span class="animate-spin inline-block mr-1">⚙</span> Activating...`;
+        }
+
+        try {
+            const res = await fetch('/api/admin/order/verify-pay', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ order_id: orderId })
+            });
+            const data = await res.json();
+            alert(data.message);
+            if (data.success) {
+                const badge = document.getElementById(`order-status-badge-${orderId}`);
+                if (badge) {
+                    badge.className = 'px-2.5 py-1 rounded text-[10px] uppercase font-black bg-emerald-50 text-emerald-700 border border-emerald-200';
+                    badge.innerText = 'PAID';
+                }
+                if (btn) btn.remove();
+                setTimeout(() => window.location.reload(), 1000);
+            } else if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = `<span>Verify & Activate</span>`;
+            }
+        } catch (err) {
+            alert('Network error.');
+            if (btn) btn.disabled = false;
+        }
+    }
+
+    // 3. DELETE ORDER
+    async function deleteAdminOrder(orderId) {
+        if (!confirm('Are you sure you want to delete this order?')) return;
+
+        try {
+            const res = await fetch('/api/admin/order/delete', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ order_id: orderId })
+            });
+            const data = await res.json();
+            alert(data.message);
+            if (data.success) {
+                const row = document.getElementById(`order-row-${orderId}`);
+                if (row) row.remove();
+            }
+        } catch (err) {
+            alert('Network error.');
+        }
+    }
+
+    // 4. HOSTING ACCOUNT ACTIONS (Suspend, Reactivate, Delete)
+    async function handleAccountAction(accountId, action) {
+        let confirmText = `Are you sure you want to ${action} this hosting account?`;
+        if (action === 'delete') {
+            confirmText = 'WARNING: Are you sure you want to PERMANENTLY DELETE this hosting account? This cannot be undone.';
+        }
+        if (!confirm(confirmText)) return;
+
+        try {
+            const res = await fetch('/api/admin/account/action', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ account_id: accountId, action: action })
+            });
+            const data = await res.json();
+            alert(data.message);
+            if (data.success) {
+                if (action === 'delete') {
+                    const row = document.getElementById(`account-row-${accountId}`);
+                    if (row) row.remove();
+                    const cntEl = document.getElementById('accounts-count');
+                    if (cntEl) cntEl.innerText = Math.max(0, parseInt(cntEl.innerText || '1') - 1);
+                } else {
+                    window.location.reload();
+                }
+            }
+        } catch (err) {
+            alert('Action failed.');
+            console.error(err);
+        }
+    }
+
+    // 5. VIEW ACCOUNT CREDENTIALS & CPANEL MODAL
+    async function openAccountDetailsModal(accountId) {
+        try {
+            const res = await fetch(`/api/admin/account/details/${accountId}`);
+            const data = await res.json();
+            if (data.success) {
+                const acc = data.account;
+                document.getElementById('modal-acc-domain').innerText = acc.domain_name;
+                document.getElementById('modal-acc-client').innerText = `${acc.user_name} (${acc.user_email})`;
+                document.getElementById('modal-acc-plan').innerText = `${acc.plan_name} (${acc.storage_gb}GB Disk / ${acc.bandwidth_gb}GB Bandwidth)`;
+                document.getElementById('modal-acc-user').innerText = acc.cpanel_username;
+                document.getElementById('modal-acc-pass').innerText = acc.cpanel_password;
+                document.getElementById('modal-acc-ns').innerText = `${acc.nameserver1} / ${acc.nameserver2}`;
+                document.getElementById('modal-acc-ip').innerText = acc.server_ip || '129.154.22.84';
+                document.getElementById('modal-acc-expires').innerText = acc.expires_at;
+
+                // Set Control Panel Link
+                document.getElementById('modal-acc-cpanel-link').href = `/hpanel`;
+
+                // Set WhatsApp Share Link
+                const waText = encodeURIComponent(`Hello ${acc.user_name}! Your hosting credentials for ${acc.domain_name} on HostingCart:
+
+Domain: ${acc.domain_name}
+cPanel Username: ${acc.cpanel_username}
+cPanel Password: ${acc.cpanel_password}
+Nameservers: ${acc.nameserver1}, ${acc.nameserver2}
+Login Panel: http://127.0.0.1:5000/login`);
+                document.getElementById('modal-acc-whatsapp').href = `https://wa.me/${(acc.user_phone || '').replace('+', '').replace(' ', '')}?text=${waText}`;
+
+                document.getElementById('admin-account-modal').classList.remove('hidden');
+                if (window.lucide) lucide.createIcons();
+            } else {
+                alert(data.message || 'Could not fetch account details.');
+            }
+        } catch (err) {
+            alert('Error loading account credentials.');
+            console.error(err);
+        }
+    }
+
+    function closeAccountDetailsModal() {
+        document.getElementById('admin-account-modal').classList.add('hidden');
+    }
+
+    // 6. CLEAN ALL DEMO / TEST ACCOUNTS (1-Click)
+    async function cleanAllDemoAccounts() {
+        if (!confirm('Are you sure you want to clean all demo/test accounts? Real client accounts will NOT be touched.')) return;
+
+        try {
+            const res = await fetch('/api/admin/clean-demo-accounts', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            });
+            const data = await res.json();
+            alert(data.message);
+            window.location.reload();
+        } catch (err) {
+            alert('Failed to clean demo accounts.');
+        }
+    }
+
+    // 7. COPY HELPER
+    function copyText(text, btn) {
+        navigator.clipboard.writeText(text).then(() => {
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<span class="text-[10px] text-emerald-600 font-bold">Copied!</span>';
+            setTimeout(() => { btn.innerHTML = orig; if (window.lucide) lucide.createIcons(); }, 1500);
+        });
+    }
+
+    // 8. COUPON CREATION
+    async function createAdminCoupon(e) {
+        e.preventDefault();
+        const code = document.getElementById('new-coupon-code').value.trim();
+        const dtype = document.getElementById('new-coupon-type').value;
+        const dval = document.getElementById('new-coupon-value').value;
+
+        const res = await fetch('/api/admin/coupon/create', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ code, discount_type: dtype, discount_value: dval })
+        });
+        const data = await res.json();
+        alert(data.message);
+        if (data.success) {
+            window.location.reload();
+        }
+    }
+
+    // 9. COUPON DELETION
+    async function deleteAdminCoupon(couponId) {
+        if (!confirm('Are you sure you want to delete this coupon?')) return;
+
+        const res = await fetch('/api/admin/coupon/delete', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ coupon_id: couponId })
+        });
+        const data = await res.json();
+        alert(data.message);
+        if (data.success) {
+            const row = document.getElementById(`coupon-row-${couponId}`);
+            if (row) row.remove();
+        }
+    }
+
+
+    // PAYMENT GATEWAY SETTINGS HANDLER
+    async function savePaymentGatewaySettings(e) {
+        e.preventDefault();
+        const payload = {
+            upi_id: document.getElementById('setting-upi').value.trim(),
+            brand_name: document.getElementById('setting-payee-name').value.trim(),
+            razorpay_key_id: document.getElementById('setting-rzp-key').value.trim(),
+            razorpay_key_secret: document.getElementById('setting-rzp-secret').value.trim(),
+            cashfree_app_id: document.getElementById('setting-cf-id').value.trim(),
+            cashfree_secret_key: document.getElementById('setting-cf-secret').value.trim()
+        };
+
+        const res = await fetch('/api/admin/settings/save', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        alert(data.message || 'Payment settings successfully saved!');
+    }
+    // 10. SAVE SERVER SETTINGS
+    async function saveServerSettings(e) {
+        e.preventDefault();
+        const payload = {
+            adapter_type: document.getElementById('setting-adapter').value,
+            server_public_ip: document.getElementById('setting-ip').value.trim(),
+            hestia_host: document.getElementById('setting-host').value.trim(),
+            hestia_password: document.getElementById('setting-key').value
+        };
+
+        const res = await fetch('/api/admin/settings/save', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        alert(data.message || 'Server settings saved successfully!');
+    }
+
+    // 11. TRIGGER LIFECYCLE CRON
+    async function triggerLifecycleCheck() {
+        const btn = document.getElementById('btn-cron-run');
+        btn.disabled = true;
+        btn.innerHTML = `<span class="animate-spin inline-block mr-1">⚙</span> Running...`;
+
+        const res = await fetch('/api/admin/lifecycle/run', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'}
+        });
+        const data = await res.json();
+        alert(data.message);
+        window.location.reload();
+    }
+
+    // 12. TICKET REPLY
+    function adminReplyToTicket(ticketId, ticketNum) {
+        document.getElementById('admin-ticket-id').value = ticketId;
+        document.getElementById('admin-reply-title').innerText = `Reply to Ticket #${ticketNum}`;
+        document.getElementById('admin-reply-modal').classList.remove('hidden');
+    }
+
+    async function submitAdminTicketReply() {
+        const ticketId = document.getElementById('admin-ticket-id').value;
+        const msg = document.getElementById('admin-reply-text').value.trim();
+        if (!msg) return;
+
+        const res = await fetch('/api/hpanel/ticket/reply', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ ticket_id: ticketId, message: msg })
+        });
+        const data = await res.json();
+        alert(data.message);
+        window.location.reload();
+    }
+
+    // 13. FREE VIP ACCOUNT PROVISIONING
+    function openFreeProvisionModal() {
+        document.getElementById('admin-free-provision-modal').classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function closeFreeProvisionModal() {
+        document.getElementById('admin-free-provision-modal').classList.add('hidden');
+    }
+
+    async function submitFreeProvision(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btn-free-provision');
+        btn.disabled = true;
+        btn.innerHTML = `<span class="animate-spin inline-block mr-2">⚙</span> Auto-Provisioning Server Node...`;
+
+        const payload = {
+            name: document.getElementById('free-client-name').value.trim(),
+            email: document.getElementById('free-client-email').value.trim(),
+            domain: document.getElementById('free-domain-name').value.trim(),
+            plan_id: parseInt(document.getElementById('free-plan-id').value),
+            duration_months: parseInt(document.getElementById('free-duration').value),
+            custom_note: document.getElementById('free-note').value.trim()
+        };
+
+        try {
+            const res = await fetch('/api/admin/accounts/create-free', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="rocket" class="w-4 h-4"></i><span>Activate & Provision Free Website Now</span>`;
+            if (window.lucide) lucide.createIcons();
+
+            if (data.success) {
+                document.getElementById('free-provision-form').classList.add('hidden');
+                const succBox = document.getElementById('free-provision-success');
+                succBox.classList.remove('hidden');
+
+                const acc = data.account;
+                let credHtml = `
+                    <strong>Domain:</strong> ${acc.domain}<br>
+                    <strong>Plan:</strong> ${acc.plan_name} (${acc.duration_months} Months Free)<br>
+                    <strong>cPanel User:</strong> ${acc.cpanel_username}<br>
+                    <strong>cPanel Password:</strong> ${acc.cpanel_password}<br>
+                    <strong>Nameservers:</strong> ${acc.nameserver1} / ${acc.nameserver2}<br>
+                    <strong>Order Number:</strong> ${data.order_number} (₹0.00 Paid)
+                `;
+                if (data.client_login_password) {
+                    credHtml += `<br><strong>Client Login Pass:</strong> ${data.client_login_password}`;
+                }
+                document.getElementById('free-credentials-box').innerHTML = credHtml;
+
+                const msg = encodeURIComponent(`Hello ${payload.name}! Your free hosting for ${acc.domain} on HostingCart is ready!
+
+Control Panel: http://127.0.0.1:5000/login
+User: ${payload.email}
+cPanel User: ${acc.cpanel_username}
+Nameservers: ${acc.nameserver1}, ${acc.nameserver2}`);
+                document.getElementById('free-whatsapp-share').href = `https://wa.me/?text=${msg}`;
+            } else {
+                alert(data.message || 'Failed to provision free account.');
+            }
+        } catch (err) {
+            btn.disabled = false;
+            btn.innerHTML = `<span>Activate</span>`;
+            alert('Error: Server communication failed.');
+            console.error(err);
+        }
+    }
+
+    // 14. REVIEWS DELETION
+    async function deleteReview(reviewId) {
+        if (!confirm('Are you sure you want to delete this customer review?')) return;
+
+        try {
+            const res = await fetch('/api/admin/reviews/delete', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ review_id: reviewId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                const row = document.getElementById(`review-row-${reviewId}`);
+                if (row) row.remove();
+                alert(data.message);
+            } else {
+                alert(data.message || 'Failed to delete review.');
+            }
+        } catch (err) {
+            alert('Network error.');
+            console.error(err);
+        }
+    }
+</script>
+{% endblock %}

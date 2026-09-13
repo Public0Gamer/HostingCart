@@ -1,0 +1,998 @@
+{% extends "base.html" %}
+
+{% block title %}hPanel — Cloud Hosting Control Center | {{ brand_name }}
+<!-- Modal: HostingCart Cloud Web File Manager -->
+<div id="file-manager-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-2xl w-full p-6 shadow-2xl relative">
+        <button onclick="closeFileManagerModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center">
+                <i data-lucide="folder-tree" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h4 class="text-base font-extrabold text-slate-900">hPanel File Manager</h4>
+                <p class="text-xs text-slate-500 font-mono">/home/{{ selected_account.cpanel_username }}/public_html</p>
+            </div>
+        </div>
+
+        <div class="border border-slate-200 rounded-2xl overflow-hidden mb-4">
+            <div class="bg-slate-100 px-4 py-2 text-[11px] font-bold text-slate-600 border-b border-slate-200 flex justify-between">
+                <span>Name</span>
+                <span>Size / Permissions</span>
+            </div>
+            <div class="divide-y divide-slate-100 text-xs font-mono">
+                <div class="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50">
+                    <span class="flex items-center gap-2 text-slate-800"><i data-lucide="folder" class="w-4 h-4 text-amber-500"></i> wp-admin/</span>
+                    <span class="text-slate-400 text-[11px]">4 KB • 0755</span>
+                </div>
+                <div class="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50">
+                    <span class="flex items-center gap-2 text-slate-800"><i data-lucide="folder" class="w-4 h-4 text-amber-500"></i> wp-content/</span>
+                    <span class="text-slate-400 text-[11px]">18 MB • 0755</span>
+                </div>
+                <div class="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50">
+                    <span class="flex items-center gap-2 text-slate-800"><i data-lucide="folder" class="w-4 h-4 text-amber-500"></i> wp-includes/</span>
+                    <span class="text-slate-400 text-[11px]">12 MB • 0755</span>
+                </div>
+                <div class="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50">
+                    <span class="flex items-center gap-2 text-primary-700 font-bold"><i data-lucide="file-code" class="w-4 h-4 text-primary-600"></i> wp-config.php</span>
+                    <span class="text-slate-400 text-[11px]">3.4 KB • 0644</span>
+                </div>
+                <div class="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50">
+                    <span class="flex items-center gap-2 text-slate-800"><i data-lucide="file-code" class="w-4 h-4 text-slate-500"></i> index.php</span>
+                    <span class="text-slate-400 text-[11px]">418 B • 0644</span>
+                </div>
+                <div class="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50">
+                    <span class="flex items-center gap-2 text-slate-800"><i data-lucide="file-text" class="w-4 h-4 text-slate-500"></i> .htaccess</span>
+                    <span class="text-slate-400 text-[11px]">240 B • 0644</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-between items-center text-xs">
+            <span class="text-slate-500">FTP: <strong>ftp.{{ selected_account.domain_name }}</strong> (Port 21)</span>
+            <button onclick="closeFileManagerModal()" class="px-4 py-2 bg-slate-900 text-white rounded-xl font-bold">Done</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: HostingCart Cloud Database Manager -->
+<div id="database-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative">
+        <button onclick="closeDatabaseModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <i data-lucide="database" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h4 class="text-base font-extrabold text-slate-900">MySQL Database & phpMyAdmin</h4>
+                <p class="text-xs text-slate-500 font-mono">db_{{ selected_account.cpanel_username }}</p>
+            </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs font-mono mb-4">
+            <div class="flex justify-between">
+                <span class="text-slate-500">Database Name:</span>
+                <strong class="text-slate-900">wp_{{ selected_account.cpanel_username }}_prod</strong>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-slate-500">Database User:</span>
+                <strong class="text-slate-900">{{ selected_account.cpanel_username }}</strong>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-slate-500">MySQL Host:</span>
+                <strong class="text-slate-900">localhost:3306</strong>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-slate-500">Tables Count:</span>
+                <strong class="text-emerald-700">12 Tables (WordPress 6.6.1 Schema)</strong>
+            </div>
+        </div>
+
+        <button onclick="alert('phpMyAdmin session started. All 12 tables loaded.'); closeDatabaseModal();" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow transition">
+            Launch phpMyAdmin Web Console
+        </button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    {% if not accounts %}
+        <!-- No active services state -->
+        <div class="text-center py-20 bg-white p-10 max-w-xl mx-auto rounded-3xl border border-slate-200 shadow-sm">
+            <div class="w-16 h-16 rounded-2xl bg-primary-50 text-primary-600 flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="server-off" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-xl font-extrabold text-slate-900 mb-2">No Active Hosting Account Found</h3>
+            <p class="text-xs text-slate-500 mb-6">You don't have any active hosting service yet. Choose a plan to launch your first website in seconds.</p>
+            <a href="/#pricing" class="btn-shimmer px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white text-xs font-black rounded-2xl shadow-md transition inline-flex items-center gap-2">
+                <i data-lucide="plus" class="w-4 h-4"></i> Explore Hosting Plans
+            </a>
+        </div>
+    {% else %}
+        <!-- Top Service Header & Selector -->
+        <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-primary-600 flex items-center justify-center text-white shadow-md shadow-primary-600/20 flex-shrink-0">
+                    <i data-lucide="globe" class="w-7 h-7"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">{{ selected_account.domain_name }}</h2>
+                        <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider 
+                            {% if selected_account.status == 'active' %}bg-emerald-50 text-emerald-700 border border-emerald-200
+                            {% elif selected_account.status == 'suspended' %}bg-rose-50 text-rose-700 border border-rose-200
+                            {% else %}bg-slate-100 text-slate-700{% endif %}">
+                            {{ selected_account.status }}
+                        </span>
+                        {% if selected_account.ssl_active %}
+                            <span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold flex items-center gap-1">
+                                <i data-lucide="lock" class="w-3 h-3"></i> Free SSL Active
+                            </span>
+                        {% endif %}
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1 flex items-center gap-3 flex-wrap font-medium">
+                        <span>Plan: <strong class="text-slate-800">{{ selected_account.plan_name }}</strong></span>
+                        <span class="text-slate-300">•</span>
+                        <span>IP: <strong class="text-primary-700 font-mono">{{ selected_account.server_ip }}</strong></span>
+                        <span class="text-slate-300">•</span>
+                        <span>Expires: <strong class="text-slate-700">{{ selected_account.expires_at }}</strong></span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Service Switcher & Quick Buttons -->
+            <div class="flex items-center gap-3 flex-wrap w-full md:w-auto">
+                {% if accounts|length > 1 %}
+                    <select onchange="window.location.href='/hpanel?account_id=' + this.value" class="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-primary-600">
+                        {% for acc in accounts %}
+                            <option value="{{ acc.id }}" {% if acc.id == selected_account.id %}selected{% endif %}>
+                                {{ acc.domain_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                {% endif %}
+                <a href="/site/{{ selected_account.domain_name }}" target="_blank" class="px-4 py-2.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold flex items-center gap-2 transition shadow-sm">
+                    <i data-lucide="external-link" class="w-3.5 h-3.5 text-emerald-600"></i> Visit Website (Live Node)
+                </a>
+            </div>
+        </div>
+
+        <!-- hPanel Tab Navigation -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-2 mb-8 text-xs font-bold scrollbar-thin border-b border-slate-200">
+            <button onclick="switchHPanelTab('overview')" id="tab-btn-overview" class="hpanel-tab-btn px-4 py-2.5 rounded-2xl bg-primary-600 text-white flex items-center gap-2 transition flex-shrink-0 shadow-sm">
+                <i data-lucide="layout-grid" class="w-4 h-4"></i> Overview
+            </button>
+            <button onclick="switchHPanelTab('wordpress')" id="tab-btn-wordpress" class="hpanel-tab-btn px-4 py-2.5 rounded-2xl bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-2 transition flex-shrink-0">
+                <i data-lucide="layers" class="w-4 h-4 text-primary-600"></i> WordPress Manager
+            </button>
+            <button onclick="switchHPanelTab('dns')" id="tab-btn-dns" class="hpanel-tab-btn px-4 py-2.5 rounded-2xl bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-2 transition flex-shrink-0">
+                <i data-lucide="network" class="w-4 h-4 text-emerald-600"></i> DNS Zone Editor
+            </button>
+            <button onclick="switchHPanelTab('ssl')" id="tab-btn-ssl" class="hpanel-tab-btn px-4 py-2.5 rounded-2xl bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-2 transition flex-shrink-0">
+                <i data-lucide="shield-check" class="w-4 h-4 text-orange-600"></i> SSL Security
+            </button>
+            <button onclick="switchHPanelTab('backups')" id="tab-btn-backups" class="hpanel-tab-btn px-4 py-2.5 rounded-2xl bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-2 transition flex-shrink-0">
+                <i data-lucide="history" class="w-4 h-4 text-blue-600"></i> 1-Click Backups
+            </button>
+            <button onclick="switchHPanelTab('tickets')" id="tab-btn-tickets" class="hpanel-tab-btn px-4 py-2.5 rounded-2xl bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-2 transition flex-shrink-0">
+                <i data-lucide="help-circle" class="w-4 h-4 text-amber-600"></i> Support Tickets ({{ tickets|length }})
+            </button>
+            <button onclick="switchHPanelTab('billing')" id="tab-btn-billing" class="hpanel-tab-btn px-4 py-2.5 rounded-2xl bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-2 transition flex-shrink-0">
+                <i data-lucide="receipt" class="w-4 h-4 text-indigo-600"></i> Invoices
+            </button>
+        </div>
+
+        <!-- ==================== TAB 1: OVERVIEW ==================== -->
+        <div id="tab-overview" class="hpanel-tab-content space-y-6">
+            <!-- Resource Gauges Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Disk Gauge -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">NVMe SSD Storage</span>
+                        <i data-lucide="hard-drive" class="w-5 h-5 text-primary-600"></i>
+                    </div>
+                    <div class="text-2xl font-black text-slate-900 mb-2">{{ selected_account.disk_used_mb }} MB <span class="text-xs text-slate-500 font-normal">/ {{ selected_account.disk_total_mb }} MB</span></div>
+                    <div class="w-full bg-slate-100 rounded-full h-2 mb-2">
+                        <div class="bg-primary-600 h-2 rounded-full" style="width: {{ (selected_account.disk_used_mb / selected_account.disk_total_mb * 100)|round }}%;"></div>
+                    </div>
+                    <span class="text-[11px] text-slate-500 font-medium">{{ (selected_account.disk_used_mb / selected_account.disk_total_mb * 100)|round }}% utilized</span>
+                </div>
+
+                <!-- Bandwidth Gauge -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Monthly Bandwidth</span>
+                        <i data-lucide="activity" class="w-5 h-5 text-emerald-600"></i>
+                    </div>
+                    <div class="text-2xl font-black text-slate-900 mb-2">{{ selected_account.bandwidth_used_gb }} GB <span class="text-xs text-slate-500 font-normal">/ {{ selected_account.bandwidth_total_gb }} GB</span></div>
+                    <div class="w-full bg-slate-100 rounded-full h-2 mb-2">
+                        <div class="bg-emerald-600 h-2 rounded-full" style="width: {{ (selected_account.bandwidth_used_gb / selected_account.bandwidth_total_gb * 100)|round }}%;"></div>
+                    </div>
+                    <span class="text-[11px] text-slate-500 font-medium">{{ (selected_account.bandwidth_used_gb / selected_account.bandwidth_total_gb * 100)|round }}% utilized</span>
+                </div>
+
+                <!-- Server Location -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Datacenter Region</span>
+                            <i data-lucide="map-pin" class="w-5 h-5 text-orange-600"></i>
+                        </div>
+                        <h4 class="text-lg font-extrabold text-slate-900">Mumbai, India (Asia-South)</h4>
+                        <p class="text-xs text-slate-500 mt-1">Tier-4 Facility • 12ms National Latency</p>
+                    </div>
+                    <div class="text-xs text-emerald-700 font-bold flex items-center gap-1.5 mt-3">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                        <span>Server Optimal (Load: 0.12)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Server Details & FTP Credentials Card -->
+            <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
+                <h3 class="text-base font-extrabold text-slate-900 mb-5 flex items-center gap-2">
+                    <i data-lucide="terminal" class="w-5 h-5 text-primary-600"></i>
+                    <span>Hosting Account Credentials</span>
+                </h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                        <span class="text-slate-500 block mb-1">Server IP Address</span>
+                        <strong class="text-slate-900 font-mono text-sm">{{ selected_account.server_ip }}</strong>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                        <span class="text-slate-500 block mb-1">FTP / cPanel Username</span>
+                        <strong class="text-primary-700 font-mono text-sm">{{ selected_account.cpanel_username }}</strong>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                        <span class="text-slate-500 block mb-1">FTP Password</span>
+                        <div class="flex items-center justify-between">
+                            <strong id="pw-field" class="text-slate-900 font-mono text-sm">••••••••••••</strong>
+                            <button onclick="togglePasswordVisibility('{{ selected_account.cpanel_password }}')" class="text-slate-400 hover:text-slate-700">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                        <span class="text-slate-500 block mb-1">FTP Hostname</span>
+                        <strong class="text-slate-900 font-mono text-sm">ftp.{{ selected_account.domain_name }}</strong>
+                    </div>
+                </div>
+
+                <!-- Nameservers Notice -->
+                <div class="mt-6 p-4 rounded-2xl bg-primary-50/70 border border-primary-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div>
+                        <h5 class="text-xs font-bold text-slate-900">Custom Branded Nameservers</h5>
+                        <p class="text-[11px] text-slate-600">Point your domain registrar to these nameservers:</p>
+                    </div>
+                    <div class="flex items-center gap-2 font-mono text-xs">
+                        <span class="bg-white px-3 py-1.5 rounded-xl border border-slate-200 text-primary-700 font-bold shadow-sm">{{ selected_account.nameserver1 }}</span>
+                        <span class="bg-white px-3 py-1.5 rounded-xl border border-slate-200 text-primary-700 font-bold shadow-sm">{{ selected_account.nameserver2 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== TAB 2: WORDPRESS ==================== -->
+        <div id="tab-wordpress" class="hpanel-tab-content hidden space-y-6">
+            <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-2xl bg-primary-50 text-primary-600 flex items-center justify-center">
+                            <i data-lucide="layers" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-extrabold text-slate-900">WordPress Auto-Installer</h3>
+                            <p class="text-xs text-slate-500">Deploy a production WordPress site in 1 click.</p>
+                        </div>
+                    </div>
+
+                    {% if selected_account.wordpress_installed %}
+                        <div class="flex items-center gap-2">
+                            <span class="px-3.5 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-1.5">
+                                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i> WordPress v{{ selected_account.wordpress_version }} Active
+                            </span>
+                            <a href="/site/{{ selected_account.domain_name }}" target="_blank" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm">
+                                <i data-lucide="external-link" class="w-4 h-4"></i> Visit Live Site
+                            </a>
+                            <a href="/site/{{ selected_account.domain_name }}/wp-admin" target="_blank" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm">
+                                <i data-lucide="log-in" class="w-4 h-4"></i> Open WP-Admin
+                            </a>
+                        </div>
+                    {% else %}
+                        <button onclick="installWordPressAction({{ selected_account.id }})" id="btn-install-wp" class="btn-shimmer px-5 py-2.5 bg-orange-600 hover:bg-orange-700 text-white text-xs font-extrabold rounded-2xl shadow-md transition flex items-center gap-2">
+                            <i data-lucide="download-cloud" class="w-4 h-4"></i> Install WordPress Now
+                        </button>
+                    {% endif %}
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs mb-6">
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <i data-lucide="zap" class="w-5 h-5 text-orange-600"></i>
+                                <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold">ACTIVE</span>
+                            </div>
+                            <h5 class="font-bold text-slate-900">LiteSpeed Cache Engine</h5>
+                            <p class="text-slate-500 mt-1 text-[11px]">Static caching delivers pages at 0.3s latency.</p>
+                        </div>
+                        <button onclick="purgeLSCache()" id="btn-purge-cache" class="mt-3 px-3 py-1.5 bg-white hover:bg-orange-50 text-orange-700 border border-orange-200 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1">
+                            <i data-lucide="refresh-cw" class="w-3 h-3"></i> Flush Cache
+                        </button>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <i data-lucide="folder" class="w-5 h-5 text-primary-600"></i>
+                                <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px] font-bold">NVMe</span>
+                            </div>
+                            <h5 class="font-bold text-slate-900">Web File Manager</h5>
+                            <p class="text-slate-500 mt-1 text-[11px]">Inspect public_html, wp-config, themes & plugins.</p>
+                        </div>
+                        <button onclick="openFileManagerModal()" class="mt-3 px-3 py-1.5 bg-white hover:bg-primary-50 text-primary-700 border border-primary-200 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1">
+                            <i data-lucide="folder-open" class="w-3 h-3"></i> Open File Manager
+                        </button>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <i data-lucide="database" class="w-5 h-5 text-emerald-600"></i>
+                                <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold">MySQL 8.0</span>
+                            </div>
+                            <h5 class="font-bold text-slate-900">Database phpMyAdmin</h5>
+                            <p class="text-slate-500 mt-1 text-[11px]">Manage WordPress SQL tables and users.</p>
+                        </div>
+                        <button onclick="openDatabaseModal()" class="mt-3 px-3 py-1.5 bg-white hover:bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1">
+                            <i data-lucide="database" class="w-3 h-3"></i> Database Manager
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== TAB 3: DNS ZONE EDITOR ==================== -->
+        <div id="tab-dns" class="hpanel-tab-content hidden space-y-6">
+            <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="text-lg font-extrabold text-slate-900">DNS Zone Management</h3>
+                        <p class="text-xs text-slate-500">Manage A, CNAME, MX, and TXT records for {{ selected_account.domain_name }}</p>
+                    </div>
+                    <button onclick="openDnsModal()" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Add Record
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                            <tr>
+                                <th class="p-3">Type</th>
+                                <th class="p-3">Host / Name</th>
+                                <th class="p-3">Points To / Value</th>
+                                <th class="p-3">TTL</th>
+                                <th class="p-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dns-table-body" class="divide-y divide-slate-100 font-mono">
+                            {% for record in dns_records %}
+                                <tr class="hover:bg-slate-50 transition">
+                                    <td class="p-3">
+                                        <span class="px-2 py-0.5 rounded font-bold 
+                                            {% if record.record_type == 'A' %}bg-blue-50 text-blue-700
+                                            {% elif record.record_type == 'CNAME' %}bg-purple-50 text-purple-700
+                                            {% elif record.record_type == 'MX' %}bg-amber-50 text-amber-700
+                                            {% else %}bg-slate-100 text-slate-700{% endif %}">
+                                            {{ record.record_type }}
+                                        </span>
+                                    </td>
+                                    <td class="p-3 text-slate-900 font-bold">{{ record.name }}</td>
+                                    <td class="p-3 text-slate-600 truncate max-w-xs">{{ record.value }}</td>
+                                    <td class="p-3 text-slate-500">{{ record.ttl }}</td>
+                                    <td class="p-3 text-right">
+                                        <button onclick="deleteDnsRecord({{ record.id }})" class="text-rose-600 hover:text-rose-700 p-1" title="Delete">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== TAB 4: SSL SECURITY ==================== -->
+        <div id="tab-ssl" class="hpanel-tab-content hidden space-y-6">
+            <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                            <i data-lucide="shield-check" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-extrabold text-slate-900">Free SSL Certificate (Let's Encrypt)</h3>
+                            <p class="text-xs text-slate-500">Protects visitors with 256-bit encryption & green padlock.</p>
+                        </div>
+                    </div>
+                    <button onclick="toggleSslAction({{ selected_account.id }})" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Toggle / Re-Issue SSL
+                    </button>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 mb-6 flex items-center justify-between">
+                    <div>
+                        <span class="text-xs text-slate-500 block">Certificate Status for {{ selected_account.domain_name }}</span>
+                        <strong class="text-sm {% if selected_account.ssl_active %}text-emerald-700{% else %}text-rose-700{% endif %}">
+                            {% if selected_account.ssl_active %}✓ Active (Auto-Renewal Enabled){% else %}✗ Inactive{% endif %}
+                        </strong>
+                    </div>
+                    <span class="text-xs text-slate-500 font-mono">Issued by: Let's Encrypt Authority</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== TAB 5: 1-CLICK BACKUPS ==================== -->
+        <div id="tab-backups" class="hpanel-tab-content hidden space-y-6">
+            <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="text-lg font-extrabold text-slate-900">1-Click Snapshots & Backups</h3>
+                        <p class="text-xs text-slate-500">Generate on-demand backups of your website files and databases.</p>
+                    </div>
+                    <button onclick="createBackupAction({{ selected_account.id }})" id="btn-create-backup" class="btn-shimmer px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition shadow-sm">
+                        <i data-lucide="download" class="w-4 h-4"></i> Generate New Backup
+                    </button>
+                </div>
+
+                <div class="space-y-3" id="backups-list">
+                    {% for b in backups %}
+                        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="file-archive" class="w-5 h-5 text-primary-600"></i>
+                                <div>
+                                    <strong class="text-xs text-slate-900 block font-mono">{{ b.filename }}</strong>
+                                    <span class="text-[10px] text-slate-500">{{ b.created_at }} • {{ b.size_mb }} MB</span>
+                                </div>
+                            </div>
+                            <a href="/api/hpanel/backup/download/{{ b.id }}" class="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 text-xs rounded-xl font-bold flex items-center gap-1 shadow-sm">
+                                <i data-lucide="download-cloud" class="w-3.5 h-3.5 text-primary-600"></i> Download (.tar.gz)
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== TAB 6: SUPPORT TICKETS ==================== -->
+        <div id="tab-tickets" class="hpanel-tab-content hidden space-y-6">
+            <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="text-lg font-extrabold text-slate-900">Priority Help Desk</h3>
+                        <p class="text-xs text-slate-500">24/7 technical support from senior server engineers.</p>
+                    </div>
+                    <button onclick="openTicketModal()" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Open New Ticket
+                    </button>
+                </div>
+
+                {% if not tickets %}
+                    <p class="text-xs text-slate-500 py-6 text-center">No open tickets. All systems running at 100%.</p>
+                {% else %}
+                    <div class="space-y-3">
+                        {% for t in tickets %}
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                                <div>
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-xs font-bold text-slate-900">#{{ t.ticket_number }}: {{ t.subject }}</span>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold 
+                                            {% if t.status == 'Open' %}bg-amber-50 text-amber-800 border border-amber-200
+                                            {% elif t.status == 'Answered' %}bg-emerald-50 text-emerald-800 border border-emerald-200
+                                            {% else %}bg-slate-100 text-slate-600{% endif %}">
+                                            {{ t.status }}
+                                        </span>
+                                    </div>
+                                    <span class="text-[11px] text-slate-500">{{ t.category }} • Priority: {{ t.priority }} • Opened: {{ t.created_at }}</span>
+                                </div>
+                                <button onclick="openReplyModal({{ t.id }}, '{{ t.ticket_number }}')" class="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 text-xs rounded-xl font-bold flex items-center gap-1 shadow-sm">
+                                    <i data-lucide="message-square" class="w-3.5 h-3.5"></i> Reply
+                                </button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ==================== TAB 7: BILLING & INVOICES ==================== -->
+        <div id="tab-billing" class="hpanel-tab-content hidden space-y-6">
+            <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
+                <h3 class="text-lg font-extrabold text-slate-900 mb-2">Billing History & Invoices</h3>
+                <p class="text-xs text-slate-500 mb-6">Download tax-compliant receipts for accounting.</p>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                            <tr>
+                                <th class="p-3">Invoice #</th>
+                                <th class="p-3">Date</th>
+                                <th class="p-3">Plan / Description</th>
+                                <th class="p-3">Cycle</th>
+                                <th class="p-3">Total Amount</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3 text-right">Receipt</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            {% for inv in invoices %}
+                                <tr class="hover:bg-slate-50 transition font-mono">
+                                    <td class="p-3 text-slate-900 font-bold">{{ inv.order_number }}</td>
+                                    <td class="p-3 text-slate-500">{{ inv.created_at }}</td>
+                                    <td class="p-3 text-slate-900">{{ inv.plan_name }} ({{ inv.domain_name }})</td>
+                                    <td class="p-3 text-slate-700 uppercase">{{ inv.billing_cycle }}</td>
+                                    <td class="p-3 text-emerald-700 font-bold">₹{{ inv.total_amount }}</td>
+                                    <td class="p-3">
+                                        <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold 
+                                            {% if inv.payment_status == 'paid' %}bg-emerald-50 text-emerald-700 border border-emerald-200
+                                            {% else %}bg-amber-50 text-amber-700 border border-amber-200{% endif %}">
+                                            {{ inv.payment_status }}
+                                        </span>
+                                    </td>
+                                    <td class="p-3 text-right">
+                                        <a href="/hpanel/invoice/{{ inv.id }}" target="_blank" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 rounded-lg text-xs font-bold inline-flex items-center gap-1">
+                                            <i data-lucide="printer" class="w-3.5 h-3.5 text-primary-600"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Modal: Add DNS Record -->
+<div id="dns-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 shadow-2xl relative">
+        <button onclick="closeDnsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-xl">&times;</button>
+        <h3 class="text-base font-extrabold text-slate-900 mb-4">Add DNS Zone Record</h3>
+        <form onsubmit="submitDnsRecord(event, {{ selected_account.id if selected_account else 0 }})" class="space-y-3 text-xs">
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Record Type</label>
+                <select id="dns-type" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900">
+                    <option value="A">A (Address)</option>
+                    <option value="CNAME">CNAME (Alias)</option>
+                    <option value="MX">MX (Mail)</option>
+                    <option value="TXT">TXT (SPF / Verification)</option>
+                </select>
+            </div>
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Host / Name (@ for root)</label>
+                <input type="text" id="dns-name" placeholder="@" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono" required>
+            </div>
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Value / Destination</label>
+                <input type="text" id="dns-value" placeholder="129.154.22.84 or mail.domain.com" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono" required>
+            </div>
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">TTL (Seconds)</label>
+                <input type="number" id="dns-ttl" value="14400" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono">
+            </div>
+            <button type="submit" class="w-full py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl mt-2 transition shadow-sm">
+                Add Record
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Support Ticket -->
+<div id="ticket-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative">
+        <button onclick="closeTicketModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-xl">&times;</button>
+        <h3 class="text-base font-extrabold text-slate-900 mb-4">Open Support Ticket</h3>
+        <form onsubmit="submitSupportTicket(event)" class="space-y-3 text-xs">
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Subject</label>
+                <input type="text" id="ticket-subject" placeholder="e.g. Help with custom nameservers" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900" required>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Department</label>
+                    <select id="ticket-dept" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900">
+                        <option value="Technical">Technical Support</option>
+                        <option value="Billing">Billing & Payments</option>
+                        <option value="Domain">Domain Management</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Priority</label>
+                    <select id="ticket-priority" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900">
+                        <option value="Low">Low</option>
+                        <option value="Medium" selected>Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Message</label>
+                <textarea id="ticket-msg" rows="4" placeholder="Describe your inquiry..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-primary-600" required></textarea>
+            </div>
+            <button type="submit" class="w-full py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl mt-2 transition shadow-sm">
+                Submit Ticket
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Reply Ticket -->
+<div id="reply-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative">
+        <button onclick="closeReplyModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-xl">&times;</button>
+        <h3 class="text-base font-extrabold text-slate-900 mb-2" id="reply-modal-title">Reply to Ticket</h3>
+        <input type="hidden" id="reply-ticket-id">
+        <div class="space-y-3 text-xs mt-4">
+            <textarea id="reply-text" rows="4" placeholder="Type your reply..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-primary-600" required></textarea>
+            <button onclick="submitTicketReply()" class="w-full py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition shadow-sm">
+                Send Reply
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: HostingCart Cloud Web File Manager -->
+<div id="file-manager-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-2xl w-full p-6 shadow-2xl relative">
+        <button onclick="closeFileManagerModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center">
+                <i data-lucide="folder-tree" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h4 class="text-base font-extrabold text-slate-900">hPanel File Manager</h4>
+                <p class="text-xs text-slate-500 font-mono">/home/{{ selected_account.cpanel_username }}/public_html</p>
+            </div>
+        </div>
+
+        <div class="border border-slate-200 rounded-2xl overflow-hidden mb-4">
+            <div class="bg-slate-100 px-4 py-2 text-[11px] font-bold text-slate-600 border-b border-slate-200 flex justify-between">
+                <span>Name</span>
+                <span>Size / Permissions</span>
+            </div>
+            <div class="divide-y divide-slate-100 text-xs font-mono">
+                <div class="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50">
+                    <span class="flex items-center gap-2 text-slate-800"><i data-lucide="folder" class="w-4 h-4 text-amber-500"></i> wp-admin/</span>
+                    <span class="text-slate-400 text-[11px]">4 KB • 0755</span>
+                </div>
+                <div class="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50">
+                    <span class="flex items-center gap-2 text-slate-800"><i data-lucide="folder" class="w-4 h-4 text-amber-500"></i> wp-content/</span>
+                    <span class="text-slate-400 text-[11px]">18 MB • 0755</span>
+                </div>
+                <div class="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50">
+                    <span class="flex items-center gap-2 text-slate-800"><i data-lucide="folder" class="w-4 h-4 text-amber-500"></i> wp-includes/</span>
+                    <span class="text-slate-400 text-[11px]">12 MB • 0755</span>
+                </div>
+                <div class="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50">
+                    <span class="flex items-center gap-2 text-primary-700 font-bold"><i data-lucide="file-code" class="w-4 h-4 text-primary-600"></i> wp-config.php</span>
+                    <span class="text-slate-400 text-[11px]">3.4 KB • 0644</span>
+                </div>
+                <div class="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50">
+                    <span class="flex items-center gap-2 text-slate-800"><i data-lucide="file-code" class="w-4 h-4 text-slate-500"></i> index.php</span>
+                    <span class="text-slate-400 text-[11px]">418 B • 0644</span>
+                </div>
+                <div class="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50">
+                    <span class="flex items-center gap-2 text-slate-800"><i data-lucide="file-text" class="w-4 h-4 text-slate-500"></i> .htaccess</span>
+                    <span class="text-slate-400 text-[11px]">240 B • 0644</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-between items-center text-xs">
+            <span class="text-slate-500">FTP: <strong>ftp.{{ selected_account.domain_name }}</strong> (Port 21)</span>
+            <button onclick="closeFileManagerModal()" class="px-4 py-2 bg-slate-900 text-white rounded-xl font-bold">Done</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: HostingCart Cloud Database Manager -->
+<div id="database-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative">
+        <button onclick="closeDatabaseModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <i data-lucide="database" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h4 class="text-base font-extrabold text-slate-900">MySQL Database & phpMyAdmin</h4>
+                <p class="text-xs text-slate-500 font-mono">db_{{ selected_account.cpanel_username }}</p>
+            </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs font-mono mb-4">
+            <div class="flex justify-between">
+                <span class="text-slate-500">Database Name:</span>
+                <strong class="text-slate-900">wp_{{ selected_account.cpanel_username }}_prod</strong>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-slate-500">Database User:</span>
+                <strong class="text-slate-900">{{ selected_account.cpanel_username }}</strong>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-slate-500">MySQL Host:</span>
+                <strong class="text-slate-900">localhost:3306</strong>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-slate-500">Tables Count:</span>
+                <strong class="text-emerald-700">12 Tables (WordPress 6.6.1 Schema)</strong>
+            </div>
+        </div>
+
+        <button onclick="alert('phpMyAdmin session started. All 12 tables loaded.'); closeDatabaseModal();" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow transition">
+            Launch phpMyAdmin Web Console
+        </button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function switchHPanelTab(tabName) {
+        document.querySelectorAll('.hpanel-tab-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.hpanel-tab-btn').forEach(btn => {
+            btn.classList.remove('bg-primary-600', 'text-white', 'shadow-sm');
+            btn.classList.add('bg-white', 'text-slate-600', 'border', 'border-slate-200');
+        });
+
+        const activeContent = document.getElementById('tab-' + tabName);
+        const activeBtn = document.getElementById('tab-btn-' + tabName);
+        if (activeContent) activeContent.classList.remove('hidden');
+        if (activeBtn) {
+            activeBtn.classList.remove('bg-white', 'text-slate-600', 'border', 'border-slate-200');
+            activeBtn.classList.add('bg-primary-600', 'text-white', 'shadow-sm');
+        }
+    }
+
+    function togglePasswordVisibility(pw) {
+        const el = document.getElementById('pw-field');
+        if (el.innerText.includes('•')) {
+            el.innerText = pw;
+        } else {
+            el.innerText = '••••••••••••';
+        }
+    }
+
+    async function installWordPressAction(accountId) {
+        const btn = document.getElementById('btn-install-wp');
+        btn.disabled = true;
+        btn.innerHTML = `<span class="animate-spin inline-block mr-2">⚙</span> Installing WP 6.6.1...`;
+
+        try {
+            const res = await fetch('/api/hpanel/wordpress/install', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ account_id: accountId })
+            });
+            const data = await res.json();
+            alert(data.message);
+            window.location.reload();
+        } catch (e) {
+            alert('Failed to install WordPress.');
+            btn.disabled = false;
+        }
+    }
+
+    async function toggleSslAction(accountId) {
+        try {
+            const res = await fetch('/api/hpanel/ssl/toggle', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ account_id: accountId })
+            });
+            const data = await res.json();
+            alert(data.message);
+            window.location.reload();
+        } catch (e) {
+            alert('SSL toggle failed.');
+        }
+    }
+
+    async function createBackupAction(accountId) {
+        const btn = document.getElementById('btn-create-backup');
+        btn.disabled = true;
+        btn.innerHTML = `<span class="animate-spin inline-block mr-2">⚙</span> Generating Snapshot...`;
+
+        try {
+            const res = await fetch('/api/hpanel/backup/create', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ account_id: accountId })
+            });
+            const data = await res.json();
+            alert(data.message);
+            window.location.reload();
+        } catch (e) {
+            alert('Backup generation failed.');
+            btn.disabled = false;
+        }
+    }
+
+    function openDnsModal() { document.getElementById('dns-modal').classList.remove('hidden'); }
+    function closeDnsModal() { document.getElementById('dns-modal').classList.add('hidden'); }
+
+    async function submitDnsRecord(e, accountId) {
+        e.preventDefault();
+        const payload = {
+            account_id: accountId,
+            record_type: document.getElementById('dns-type').value,
+            name: document.getElementById('dns-name').value.trim(),
+            value: document.getElementById('dns-value').value.trim(),
+            ttl: document.getElementById('dns-ttl').value
+        };
+        const res = await fetch('/api/hpanel/dns/add', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        alert(data.message);
+        window.location.reload();
+    }
+
+    async function deleteDnsRecord(recordId) {
+        if (!confirm('Are you sure you want to remove this DNS record?')) return;
+        const res = await fetch('/api/hpanel/dns/delete', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ record_id: recordId })
+        });
+        const data = await res.json();
+        window.location.reload();
+    }
+
+    function openTicketModal() { document.getElementById('ticket-modal').classList.remove('hidden'); }
+    function closeTicketModal() { document.getElementById('ticket-modal').classList.add('hidden'); }
+
+    async function submitSupportTicket(e) {
+        e.preventDefault();
+        const payload = {
+            subject: document.getElementById('ticket-subject').value.trim(),
+            category: document.getElementById('ticket-dept').value,
+            priority: document.getElementById('ticket-priority').value,
+            message: document.getElementById('ticket-msg').value.trim()
+        };
+        const res = await fetch('/api/hpanel/ticket/create', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        alert(data.message);
+        window.location.reload();
+    }
+
+    function openReplyModal(ticketId, ticketNum) {
+        document.getElementById('reply-ticket-id').value = ticketId;
+        document.getElementById('reply-modal-title').innerText = `Reply to Ticket #${ticketNum}`;
+        document.getElementById('reply-modal').classList.remove('hidden');
+    }
+    function closeReplyModal() { document.getElementById('reply-modal').classList.add('hidden'); }
+
+    async function submitTicketReply() {
+        const ticketId = document.getElementById('reply-ticket-id').value;
+        const msg = document.getElementById('reply-text').value.trim();
+        if (!msg) return;
+
+        const res = await fetch('/api/hpanel/ticket/reply', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ ticket_id: ticketId, message: msg })
+        });
+        const data = await res.json();
+        alert(data.message);
+        window.location.reload();
+    }
+</script>
+
+<!-- Modal: HostingCart Cloud Web File Manager -->
+<div id="file-manager-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-2xl w-full p-6 shadow-2xl relative">
+        <button onclick="closeFileManagerModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center">
+                <i data-lucide="folder-tree" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h4 class="text-base font-extrabold text-slate-900">hPanel File Manager</h4>
+                <p class="text-xs text-slate-500 font-mono">/home/{{ selected_account.cpanel_username }}/public_html</p>
+            </div>
+        </div>
+
+        <div class="border border-slate-200 rounded-2xl overflow-hidden mb-4">
+            <div class="bg-slate-100 px-4 py-2 text-[11px] font-bold text-slate-600 border-b border-slate-200 flex justify-between">
+                <span>Name</span>
+                <span>Size / Permissions</span>
+            </div>
+            <div class="divide-y divide-slate-100 text-xs font-mono">
+                <div class="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50">
+                    <span class="flex items-center gap-2 text-slate-800"><i data-lucide="folder" class="w-4 h-4 text-amber-500"></i> wp-admin/</span>
+                    <span class="text-slate-400 text-[11px]">4 KB • 0755</span>
+                </div>
+                <div class="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50">
+                    <span class="flex items-center gap-2 text-slate-800"><i data-lucide="folder" class="w-4 h-4 text-amber-500"></i> wp-content/</span>
+                    <span class="text-slate-400 text-[11px]">18 MB • 0755</span>
+                </div>
+                <div class="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50">
+                    <span class="flex items-center gap-2 text-slate-800"><i data-lucide="folder" class="w-4 h-4 text-amber-500"></i> wp-includes/</span>
+                    <span class="text-slate-400 text-[11px]">12 MB • 0755</span>
+                </div>
+                <div class="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50">
+                    <span class="flex items-center gap-2 text-primary-700 font-bold"><i data-lucide="file-code" class="w-4 h-4 text-primary-600"></i> wp-config.php</span>
+                    <span class="text-slate-400 text-[11px]">3.4 KB • 0644</span>
+                </div>
+                <div class="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50">
+                    <span class="flex items-center gap-2 text-slate-800"><i data-lucide="file-code" class="w-4 h-4 text-slate-500"></i> index.php</span>
+                    <span class="text-slate-400 text-[11px]">418 B • 0644</span>
+                </div>
+                <div class="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50">
+                    <span class="flex items-center gap-2 text-slate-800"><i data-lucide="file-text" class="w-4 h-4 text-slate-500"></i> .htaccess</span>
+                    <span class="text-slate-400 text-[11px]">240 B • 0644</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-between items-center text-xs">
+            <span class="text-slate-500">FTP: <strong>ftp.{{ selected_account.domain_name }}</strong> (Port 21)</span>
+            <button onclick="closeFileManagerModal()" class="px-4 py-2 bg-slate-900 text-white rounded-xl font-bold">Done</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: HostingCart Cloud Database Manager -->
+<div id="database-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative">
+        <button onclick="closeDatabaseModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <i data-lucide="database" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h4 class="text-base font-extrabold text-slate-900">MySQL Database & phpMyAdmin</h4>
+                <p class="text-xs text-slate-500 font-mono">db_{{ selected_account.cpanel_username }}</p>
+            </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs font-mono mb-4">
+            <div class="flex justify-between">
+                <span class="text-slate-500">Database Name:</span>
+                <strong class="text-slate-900">wp_{{ selected_account.cpanel_username }}_prod</strong>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-slate-500">Database User:</span>
+                <strong class="text-slate-900">{{ selected_account.cpanel_username }}</strong>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-slate-500">MySQL Host:</span>
+                <strong class="text-slate-900">localhost:3306</strong>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-slate-500">Tables Count:</span>
+                <strong class="text-emerald-700">12 Tables (WordPress 6.6.1 Schema)</strong>
+            </div>
+        </div>
+
+        <button onclick="alert('phpMyAdmin session started. All 12 tables loaded.'); closeDatabaseModal();" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow transition">
+            Launch phpMyAdmin Web Console
+        </button>
+    </div>
+</div>
+
+{% endblock %}

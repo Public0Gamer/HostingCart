@@ -1,0 +1,812 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="relative pt-12 pb-20 hero-glow-light border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Dual Column Hero Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-16">
+            <!-- Left Column: Copy & Social Proof (7 Cols) -->
+            <div class="lg:col-span-7 space-y-6 text-left">
+                <!-- Social Proof Pill -->
+                <div class="inline-flex items-center gap-3 p-1.5 pr-4 rounded-full bg-white border border-slate-200 shadow-sm">
+                    <div class="flex -space-x-2">
+                        <img class="w-6 h-6 rounded-full border-2 border-white" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=64&h=64&fit=crop&crop=faces" alt="User">
+                        <img class="w-6 h-6 rounded-full border-2 border-white" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=64&h=64&fit=crop&crop=faces" alt="User">
+                        <img class="w-6 h-6 rounded-full border-2 border-white" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=64&h=64&fit=crop&crop=faces" alt="User">
+                    </div>
+                    <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        <span class="flex text-amber-500"><i data-lucide="star" class="w-3.5 h-3.5 fill-amber-500"></i></span>
+                        <span>Trusted by <strong>45,000+</strong> Indian & Global Businesses</span>
+                    </span>
+                </div>
+
+                <!-- Main Headline -->
+                <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.15]">
+                    Fast, Reliable & Secure Web Hosting for <span class="text-primary-600">Growing Websites</span>
+                </h1>
+
+                <!-- Subtitle -->
+                <p class="text-base sm:text-lg text-slate-600 leading-relaxed max-w-xl">
+                    Deploy your WordPress sites, business portals, and e-commerce stores on high-speed NVMe LiteSpeed servers. 99.99% uptime, free SSL, and a friendly custom hPanel.
+                </p>
+
+                <!-- Urgent Deal Box -->
+                <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-md flex flex-wrap items-center gap-6 max-w-xl">
+                    <div>
+                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Special Offer From</span>
+                        <div class="flex items-baseline gap-1">
+                            <span class="text-3xl font-black text-slate-900">₹49</span>
+                            <span class="text-xs text-slate-500 font-semibold">/month</span>
+                        </div>
+                    </div>
+
+                    <div class="h-10 w-px bg-slate-200 hidden sm:block"></div>
+
+                    <!-- Countdown Timer -->
+                    <div class="flex items-center gap-2">
+                        <div class="bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl text-center">
+                            <span id="timer-hours" class="text-sm font-extrabold text-orange-600">04</span>
+                            <span class="text-[9px] text-slate-500 block uppercase font-bold">Hours</span>
+                        </div>
+                        <span class="text-slate-400 font-bold">:</span>
+                        <div class="bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl text-center">
+                            <span id="timer-mins" class="text-sm font-extrabold text-orange-600">28</span>
+                            <span class="text-[9px] text-slate-500 block uppercase font-bold">Mins</span>
+                        </div>
+                        <span class="text-slate-400 font-bold">:</span>
+                        <div class="bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl text-center">
+                            <span id="timer-secs" class="text-sm font-extrabold text-orange-600">45</span>
+                            <span class="text-[9px] text-slate-500 block uppercase font-bold">Secs</span>
+                        </div>
+                    </div>
+
+                    <a href="#pricing" class="btn-shimmer ml-auto px-5 py-3 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-extrabold text-xs shadow-md shadow-orange-600/20 transition flex items-center gap-1.5">
+                        <span>Claim Deal</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </a>
+                </div>
+
+                <!-- Trust Badges Under Hero -->
+                <div class="flex flex-wrap items-center gap-6 pt-1 text-xs text-slate-600 font-semibold">
+                    <span class="flex items-center gap-1.5 text-emerald-700"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i> Free Domain Included</span>
+                    <span class="flex items-center gap-1.5 text-emerald-700"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i> 30-Day Money-Back</span>
+                    <span class="flex items-center gap-1.5 text-emerald-700"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i> 24/7 Expert Support</span>
+                </div>
+            </div>
+
+            <!-- Right Column: Interactive Clean Server Monitor (5 Cols) -->
+            <div class="lg:col-span-5 relative">
+                <div class="bg-white p-6 rounded-3xl shadow-xl border border-slate-200 relative">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
+                        <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-rose-400"></span>
+                        <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+                        <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
+                        <span class="text-xs text-slate-500 font-mono font-semibold ml-2">hpanel.hostingcart.in</span>
+                    </div>
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> Live & Healthy
+                        </span>
+                    </div>
+
+                    <div class="space-y-4 text-xs">
+                        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                            <div>
+                                <span class="text-slate-500 block text-[11px] font-semibold">Active Production Domain</span>
+                                <strong class="text-slate-900 text-sm font-mono">mybrandstore.in</strong>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-lg bg-primary-50 text-primary-700 font-mono font-bold text-[11px]">
+                                129.154.22.84
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                                <span class="text-[10px] text-slate-500 font-semibold block mb-1">NVMe Storage</span>
+                                <div class="w-full bg-slate-200 rounded-full h-2 mb-1.5">
+                                    <div class="bg-primary-600 h-2 rounded-full w-[24%]"></div>
+                                </div>
+                                <span class="font-bold text-slate-800">12 GB / 50 GB</span>
+                            </div>
+                            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                                <span class="text-[10px] text-slate-500 font-semibold block mb-1">Server Response</span>
+                                <div class="w-full bg-slate-200 rounded-full h-2 mb-1.5">
+                                    <div class="bg-emerald-500 h-2 rounded-full w-[94%]"></div>
+                                </div>
+                                <span class="font-bold text-emerald-700">0.34s (A+ Speed)</span>
+                            </div>
+                        </div>
+
+                        <div class="p-3.5 rounded-2xl bg-primary-50/70 border border-primary-200 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-xl bg-primary-600 text-white flex items-center justify-center">
+                                    <i data-lucide="layers" class="w-4 h-4"></i>
+                                </div>
+                                <div>
+                                    <h5 class="font-bold text-slate-900 text-xs">WordPress 6.6.1 Ready</h5>
+                                    <span class="text-[10px] text-slate-500">LiteSpeed Cache Pre-installed</span>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
+                                Active
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Interactive Domain Search Bar -->
+        <div class="max-w-4xl mx-auto bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 shadow-lg">
+            <form id="domain-search-form" class="flex flex-col sm:flex-row gap-3">
+                <div class="relative flex-grow">
+                    <i data-lucide="search" class="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2"></i>
+                    <input 
+                        type="text" 
+                        id="domain-input" 
+                        placeholder="Search your brand name (e.g. startupgrowth.com)" 
+                        class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-primary-600 focus:bg-white transition font-medium"
+                        required
+                    >
+                </div>
+                <button type="submit" class="btn-shimmer px-8 py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-extrabold rounded-2xl text-sm transition flex items-center justify-center gap-2 shadow-md shadow-primary-600/20 flex-shrink-0">
+                    <span id="search-btn-text">Check Domain</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </button>
+            </form>
+
+            <!-- TLD Price Chips -->
+            <div class="flex flex-wrap items-center justify-center gap-4 mt-3.5 text-xs text-slate-500 font-semibold">
+                <span class="bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200"><strong class="text-slate-800">.com</strong> ₹799/yr</span>
+                <span class="bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200"><strong class="text-slate-800">.in</strong> ₹399/yr</span>
+                <span class="bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200"><strong class="text-slate-800">.org</strong> ₹999/yr</span>
+                <span class="bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200"><strong class="text-slate-800">.xyz</strong> ₹199/yr</span>
+                <span class="text-orange-600 font-bold flex items-center gap-1">
+                    <i data-lucide="gift" class="w-3.5 h-3.5"></i> Free with 12M+ Hosting
+                </span>
+            </div>
+
+            <div id="domain-results-box" class="hidden mt-4 pt-4 border-t border-slate-100">
+                <!-- Injected via JavaScript -->
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Section: 100% Original HostingCart Cloud Architecture -->
+<section id="pricing" class="py-20 bg-slate-50 border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-14">
+            <span class="text-xs font-black uppercase tracking-wider text-blue-600 mb-2 block">Ultra-Fast NVMe Hosting • India Datacenters • 100% Transparent</span>
+            <h2 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight mb-4">
+                Choose the Right Hosting Plan
+            </h2>
+            <p class="text-slate-600 text-sm sm:text-base">
+                Instant automated cloud setup. Free Wildcard SSL, Free Domain with annual billing, and our 30-Day Money-Back Guarantee.
+            </p>
+
+            <!-- Billing Cycle Switcher -->
+            <div class="inline-flex items-center p-1.5 rounded-2xl bg-white border border-slate-200 mt-8 gap-1 shadow-sm">
+                <button type="button" onclick="setBillingCycle('48m')" id="btn-cycle-48m" class="px-5 py-2.5 rounded-xl text-xs font-extrabold bg-blue-600 text-white shadow transition flex items-center gap-1.5">
+                    48 Months <span class="bg-emerald-500 text-[10px] text-white px-2 py-0.5 rounded-full font-black uppercase">Best Value</span>
+                </button>
+                <button type="button" onclick="setBillingCycle('yearly')" id="btn-cycle-yearly" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5">
+                    12 Months <span class="text-orange-600 text-[10px] font-bold bg-orange-50 px-1.5 py-0.5 rounded border border-orange-200">Free Domain</span>
+                </button>
+                <button type="button" onclick="setBillingCycle('monthly')" id="btn-cycle-monthly" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition">
+                    1 Month
+                </button>
+            </div>
+        </div>
+
+        <!-- 4 Plans Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+            <!-- ================= CARD 1: SINGLE STARTER ================= -->
+            <div class="bg-white rounded-3xl p-7 border border-slate-200 flex flex-col justify-between hover:shadow-xl transition relative">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-black bg-blue-50 text-blue-700">Save 84%</span>
+                    </div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-1">Single Starter</h3>
+                    <p class="text-xs text-slate-500 mb-6 h-8 leading-snug">Perfect for personal portfolios, resumes, and simple blogs.</p>
+
+                    <!-- Price Box -->
+                    <div class="mb-4">
+                        <div class="text-xs text-slate-400 line-through font-semibold plan-regular-price">₹299</div>
+                        <div class="flex items-baseline gap-1 my-0.5">
+                            <span class="text-xs text-slate-600 font-bold">₹</span>
+                            <span class="text-4xl font-black text-slate-900 plan-price" data-monthly="49" data-yearly="49" data-48m="49">49.00</span>
+                            <span class="text-xs text-slate-500 font-semibold">/mo</span>
+                        </div>
+                        <div class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg mt-1 mb-2">
+                            <i data-lucide="tag" class="w-3 h-3 text-emerald-600"></i> 'HOSTINGCART' applied
+                        </div>
+                    </div>
+
+                    <!-- CTA Button -->
+                    <a href="/checkout?plan=single&cycle=48m" class="plan-order-link w-full py-3 rounded-2xl border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-black text-xs text-center block transition shadow-sm mb-3" data-slug="single">
+                        Choose Starter
+                    </a>
+                    <div class="text-[11px] text-slate-500 mb-6 plan-subtext leading-tight">
+                        Get 48 months for ₹2,352.00 (regular price ₹14,352). Renews at ₹199/mo.
+                    </div>
+
+                    <!-- Core Features Checklist -->
+                    <ul class="space-y-2.5 text-xs text-slate-700 border-t border-slate-100 pt-5 mb-5 font-medium">
+                        <li class="flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                            <span><strong>1</strong> Website</span>
+                        </li>
+                        <li class="flex items-center gap-2 text-slate-400">
+                            <i data-lucide="minus" class="w-4 h-4 text-slate-300 flex-shrink-0"></i>
+                            <span>Free Domain</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                            <span><strong>10 GB</strong> NVMe SSD Storage</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                            <span>Free Weekly Backups</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                            <span>Free Wildcard SSL Certificate</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                            <span>1-Click WordPress Installer</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                            <span>LiteSpeed Enterprise Cache</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                            <span>1 Free Business Mailbox</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- ================= CARD 2: PLUS GROWTH ================= -->
+            <div class="bg-white rounded-3xl p-7 border border-slate-200 flex flex-col justify-between hover:shadow-xl transition relative">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-black bg-blue-50 text-blue-700">Save 78%</span>
+                    </div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-1">Plus Growth</h3>
+                    <p class="text-xs text-slate-500 mb-6 h-8 leading-snug">Best value for growing creators, startups & small businesses.</p>
+
+                    <!-- Price Box -->
+                    <div class="mb-4">
+                        <div class="text-xs text-slate-400 line-through font-semibold plan-regular-price">₹499</div>
+                        <div class="flex items-baseline gap-1 my-0.5">
+                            <span class="text-xs text-slate-600 font-bold">₹</span>
+                            <span class="text-4xl font-black text-slate-900 plan-price" data-monthly="119" data-yearly="119" data-48m="119">119.00</span>
+                            <span class="text-xs text-slate-500 font-semibold">/mo</span>
+                        </div>
+                        <div class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg mt-1 mb-2">
+                            <i data-lucide="tag" class="w-3 h-3 text-emerald-600"></i> 'HOSTINGCART' applied
+                        </div>
+                    </div>
+
+                    <!-- CTA Button -->
+                    <a href="/checkout?plan=premium&cycle=48m" class="plan-order-link w-full py-3 rounded-2xl border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-black text-xs text-center block transition shadow-sm mb-3" data-slug="premium">
+                        Choose Plus Growth
+                    </a>
+                    <div class="text-[11px] text-slate-500 mb-6 plan-subtext leading-tight">
+                        Get 48 months for ₹5,712.00 (regular price ₹23,952). Renews at ₹299/mo.
+                    </div>
+
+                    <!-- Core Features Checklist -->
+                    <ul class="space-y-2.5 text-xs text-slate-700 border-t border-slate-100 pt-5 mb-5 font-medium">
+                        <li class="flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                            <span><strong>3</strong> Websites</span>
+                        </li>
+                        <li class="flex items-center gap-2 font-bold text-orange-600">
+                            <i data-lucide="check" class="w-4 h-4 text-orange-600 flex-shrink-0"></i>
+                            <span>Free Domain (.IN or .COM)</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                            <span><strong>20 GB</strong> NVMe SSD Storage</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                            <span>Free Weekly Backups</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                            <span>Free Wildcard SSL Certificate</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                            <span>1-Click WordPress & Visual Builder</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                            <span>LiteSpeed Enterprise Cache</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                            <span>3 Free Business Mailboxes</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- ================= CARD 3: BUSINESS PRO (FEATURED HERO CARD) ================= -->
+            <div class="bg-[#0F172A] text-white rounded-3xl p-7 border-2 border-blue-600 shadow-2xl flex flex-col justify-between relative transform lg:-translate-y-2">
+                <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[11px] font-black px-4 py-1 rounded-full uppercase tracking-wider shadow-lg shadow-blue-600/40 flex items-center gap-1.5 whitespace-nowrap">
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-300"></i> ⭐ Most Popular • Save 68%
+                </div>
+
+                <div>
+                    <div class="flex items-center gap-2 mb-1 mt-2">
+                        <i data-lucide="zap" class="w-5 h-5 text-blue-400"></i>
+                        <h3 class="text-2xl font-black text-white">Business Pro</h3>
+                    </div>
+                    <p class="text-xs text-slate-300 mb-6 h-8 leading-snug">All-inclusive cloud package for e-commerce, high traffic & agencies.</p>
+
+                    <!-- Price Box -->
+                    <div class="mb-4">
+                        <div class="text-xs text-slate-400 line-through font-semibold plan-regular-price">₹599</div>
+                        <div class="flex items-baseline gap-1 my-0.5">
+                            <span class="text-xs text-slate-400 font-bold">₹</span>
+                            <span class="text-4xl font-black text-white plan-price" data-monthly="199" data-yearly="199" data-48m="199">199.00</span>
+                            <span class="text-xs text-slate-400 font-semibold">/mo</span>
+                        </div>
+                        <div class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-lg mt-1 mb-2">
+                            <i data-lucide="tag" class="w-3 h-3 text-emerald-400"></i> 'HOSTINGCART' applied
+                        </div>
+                    </div>
+
+                    <!-- CTA Button -->
+                    <a href="/checkout?plan=unlimited&cycle=48m" class="plan-order-link w-full py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs text-center block shadow-lg shadow-blue-600/40 transition mb-3" data-slug="unlimited">
+                        Get Started Now
+                    </a>
+                    <div class="text-[11px] text-slate-400 mb-6 plan-subtext leading-tight">
+                        Get 48 months for ₹9,552.00 (regular price ₹28,752). Renews at ₹449/mo.
+                    </div>
+
+                    <!-- Core Features Checklist -->
+                    <ul class="space-y-2.5 text-xs text-slate-200 border-t border-slate-800 pt-5 mb-5 font-medium">
+                        <li class="flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
+                            <span><strong class="text-white">Unlimited</strong> Websites</span>
+                        </li>
+                        <li class="flex items-center gap-2 font-bold text-orange-400">
+                            <i data-lucide="check" class="w-4 h-4 text-orange-400 flex-shrink-0"></i>
+                            <span>Free Domain Included</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
+                            <span><strong class="text-white">50 GB</strong> NVMe SSD Storage</span>
+                        </li>
+                        <li class="flex items-center gap-2 font-bold text-white">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
+                            <span>Daily Backups + 1-Click Restore</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
+                            <span>Free Cloud CDN Integration</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
+                            <span>LiteSpeed LSCache Optimized</span>
+                        </li>
+                        <li class="flex items-center gap-2 text-white font-bold">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
+                            <span>Unlimited Business Mailboxes</span>
+                        </li>
+                        <li class="flex items-center gap-2 text-white font-bold">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
+                            <span>Direct Priority WhatsApp Support</span>
+                        </li>
+                    </ul>
+
+                    <!-- Why this plan? Card -->
+                    <div class="mt-6 p-4 rounded-2xl bg-[#1E293B] border border-slate-700 text-xs text-slate-300">
+                        <div class="font-black text-white mb-1">Why choose Business Pro?</div>
+                        <div class="text-[11px] leading-relaxed">Our flagship package designed for high performance, e-commerce stores, and peace of mind.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= CARD 4: ENTERPRISE CLOUD ================= -->
+            <div class="bg-white rounded-3xl p-7 border border-slate-200 flex flex-col justify-between hover:shadow-xl transition relative">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-black bg-blue-50 text-blue-700">Dedicated Power</span>
+                    </div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-1">Enterprise Cloud</h3>
+                    <p class="text-xs text-slate-500 mb-6 h-8 leading-snug">Dedicated isolated vCPU & NVMe power for mission-critical portals & stores.</p>
+
+                    <!-- Price Box -->
+                    <div class="mb-4">
+                        <div class="text-xs text-slate-400 line-through font-semibold plan-regular-price">₹1,399</div>
+                        <div class="flex items-baseline gap-1 my-0.5">
+                            <span class="text-xs text-slate-600 font-bold">₹</span>
+                            <span class="text-4xl font-black text-slate-900 plan-price" data-monthly="479" data-yearly="479" data-48m="479">479.00</span>
+                            <span class="text-xs text-slate-500 font-semibold">/mo</span>
+                        </div>
+                        <div class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg mt-1 mb-2">
+                            <i data-lucide="tag" class="w-3 h-3 text-emerald-600"></i> 'HOSTINGCART' applied
+                        </div>
+                    </div>
+
+                    <!-- CTA Button -->
+                    <a href="/checkout?plan=cloud-startup&cycle=48m" class="plan-order-link w-full py-3 rounded-2xl border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-black text-xs text-center block transition shadow-sm mb-3" data-slug="cloud-startup">
+                        Choose Enterprise
+                    </a>
+                    <div class="text-[11px] text-slate-500 mb-6 plan-subtext leading-tight">
+                        Get 48 months for ₹22,992.00 (regular price ₹67,152). Renews at ₹899/mo.
+                    </div>
+
+                    <!-- Core Features Checklist -->
+                    <ul class="space-y-2.5 text-xs text-slate-700 border-t border-slate-100 pt-5 mb-5 font-medium">
+                        <li class="flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                            <span><strong>Unlimited</strong> Websites</span>
+                        </li>
+                        <li class="flex items-center gap-2 font-bold text-orange-600">
+                            <i data-lucide="check" class="w-4 h-4 text-orange-600 flex-shrink-0"></i>
+                            <span>Free Domain Included</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                            <span><strong>100 GB</strong> Dedicated NVMe SSD</span>
+                        </li>
+                        <li class="flex items-center gap-2 font-bold text-slate-900">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                            <span>Daily & On-Demand Snapshots</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                            <span>Dedicated Isolated vCPU & RAM</span>
+                        </li>
+                        <li class="flex items-center gap-2 font-bold text-slate-900">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                            <span>Dedicated IP Address Ready</span>
+                        </li>
+                        <li class="flex items-center gap-2 font-bold text-slate-900">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                            <span>VIP 24/7 Priority Support</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- View All Features Link -->
+        <div class="text-center mt-12">
+            <a href="#features" class="inline-flex items-center gap-1.5 text-sm font-bold text-blue-600 hover:text-blue-800 transition">
+                <span>Compare all hosting features & specifications</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Features & Benchmark Section -->
+<section id="features" class="py-20 bg-white border-t border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-16">
+            <span class="text-xs font-bold uppercase tracking-wider text-primary-600 mb-2 block">Why Customers Choose Us</span>
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                Built for Maximum Speed & 99.99% Uptime
+            </h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Speed -->
+            <div class="p-8 rounded-3xl bg-slate-50 border border-slate-200 space-y-4">
+                <div class="w-12 h-12 rounded-2xl bg-primary-100 text-primary-700 flex items-center justify-center">
+                    <i data-lucide="zap" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900">LiteSpeed NVMe SSDs</h3>
+                <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                    Our servers run on LiteSpeed Web Server, delivering dynamic pages up to 4 times faster than traditional Apache hosting.
+                </p>
+                <div class="pt-4 border-t border-slate-200">
+                    <div class="flex justify-between text-xs font-bold mb-1">
+                        <span>HostingCart LiteSpeed</span>
+                        <span class="text-emerald-600">0.34s TTFB</span>
+                    </div>
+                    <div class="w-full bg-slate-200 rounded-full h-2">
+                        <div class="bg-primary-600 h-2 rounded-full w-[94%]"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security -->
+            <div class="p-8 rounded-3xl bg-slate-50 border border-slate-200 space-y-4">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                    <i data-lucide="shield-check" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900">Advanced DDoS Mitigation</h3>
+                <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                    Automated multi-layered DDoS mitigation shields your online store from malicious bot attacks, keeping your site safe 24/7.
+                </p>
+                <div class="pt-4 border-t border-slate-200 text-xs font-semibold text-emerald-700 flex items-center gap-1.5">
+                    <i data-lucide="lock" class="w-4 h-4"></i> Free Let's Encrypt Wildcard SSL
+                </div>
+            </div>
+
+            <!-- Datacenters -->
+            <div class="p-8 rounded-3xl bg-slate-50 border border-slate-200 space-y-4">
+                <div class="w-12 h-12 rounded-2xl bg-orange-100 text-orange-700 flex items-center justify-center">
+                    <i data-lucide="map-pin" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900">Mumbai Tier-4 Datacenter</h3>
+                <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                    Ultra-low 12ms latency inside India for blazing fast local loading, with global nodes in Singapore, Frankfurt, and USA.
+                </p>
+                <div class="pt-4 border-t border-slate-200 text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                    <i data-lucide="activity" class="w-4 h-4 text-emerald-600"></i> 99.99% Guaranteed SLA Uptime
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Customer Reviews -->
+<section class="py-20 bg-slate-50" id="reviews-section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-14">
+            <div>
+                <span class="text-xs font-bold uppercase tracking-wider text-primary-600 mb-1 block">Genuine Client Feedback</span>
+                <h2 class="text-3xl font-extrabold text-slate-900">What Our Customers Say</h2>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1">Real reviews from entrepreneurs, businesses, and web developers across India.</p>
+            </div>
+            <button onclick="openReviewModal()" class="px-5 py-3 bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 rounded-2xl text-xs font-bold shadow-sm transition flex items-center gap-2">
+                <i data-lucide="edit-3" class="w-4 h-4 text-primary-600"></i>
+                <span>Write a Review</span>
+            </button>
+        </div>
+
+        {% if reviews %}
+        <div id="reviews-container" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% for rev in reviews %}
+            <div class="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4 hover:shadow-md transition flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex text-amber-500 gap-1">
+                            {% for i in range(rev.rating) %}
+                            <i data-lucide="star" class="w-4 h-4 fill-amber-500"></i>
+                            {% endfor %}
+                            {% for i in range(5 - rev.rating) %}
+                            <i data-lucide="star" class="w-4 h-4 text-slate-200"></i>
+                            {% endfor %}
+                        </div>
+                        <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                            <i data-lucide="check-circle" class="w-3 h-3 text-emerald-600"></i> Verified Client
+                        </span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed italic">
+                        "{{ rev.comment }}"
+                    </p>
+                </div>
+                <div class="flex items-center gap-3 pt-4 border-t border-slate-100">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-primary-600 to-indigo-600 text-white font-black text-xs flex items-center justify-center shadow-sm flex-shrink-0">
+                        {{ rev.name[:2].upper() }}
+                    </div>
+                    <div>
+                        <strong class="text-xs text-slate-900 block font-bold">{{ rev.name }}</strong>
+                        <span class="text-[10px] text-slate-500">{{ rev.role_or_city }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bg-white border border-slate-200 rounded-3xl p-10 text-center max-w-lg mx-auto shadow-sm">
+            <div class="w-14 h-14 rounded-2xl bg-primary-50 text-primary-600 mx-auto flex items-center justify-center mb-4">
+                <i data-lucide="message-square-plus" class="w-7 h-7"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2">Be the First to Review!</h3>
+            <p class="text-xs text-slate-500 mb-6 leading-relaxed">
+                HostingCart par aapka hosting experience kaisa raha? Humare sath apna feedback share karein.
+            </p>
+            <button onclick="openReviewModal()" class="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white text-xs font-bold rounded-xl shadow-md shadow-primary-600/20 transition flex items-center gap-2 mx-auto">
+                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                <span>Write the First Review</span>
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- FAQs Section -->
+<section id="faq" class="py-20 bg-white border-t border-slate-200">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+        <div class="text-center mb-12">
+            <span class="text-xs font-bold uppercase tracking-wider text-primary-600 mb-2 block">Got Questions?</span>
+            <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Frequently Asked Questions</h2>
+        </div>
+
+        <div class="space-y-4">
+            <details class="group p-5 rounded-2xl bg-slate-50 border border-slate-200 transition">
+                <summary class="flex justify-between items-center font-bold text-slate-900 cursor-pointer list-none text-sm sm:text-base">
+                    <span>How fast will my account be activated after payment?</span>
+                    <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400 group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <p class="text-xs sm:text-sm text-slate-600 mt-3 leading-relaxed">
+                    Our server provisioning engine is 100% automated. As soon as your UPI or card payment succeeds, our background worker creates your cPanel/hPanel account, binds your DNS zones, activates free SSL, and issues credentials in under 10 seconds.
+                </p>
+            </details>
+
+            <details class="group p-5 rounded-2xl bg-slate-50 border border-slate-200 transition">
+                <summary class="flex justify-between items-center font-bold text-slate-900 cursor-pointer list-none text-sm sm:text-base">
+                    <span>Can I use my existing domain from GoDaddy or Namecheap?</span>
+                    <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400 group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <p class="text-xs sm:text-sm text-slate-600 mt-3 leading-relaxed">
+                    Yes, absolutely! Simply change your domain's nameservers at your registrar to: <code class="text-primary-700 bg-primary-50 px-2 py-0.5 rounded font-mono">ns1.hostingcart.in</code> and <code class="text-primary-700 bg-primary-50 px-2 py-0.5 rounded font-mono">ns2.hostingcart.in</code>. Your domain will automatically route to your HostingCart account.
+                </p>
+            </details>
+
+            <details class="group p-5 rounded-2xl bg-slate-50 border border-slate-200 transition">
+                <summary class="flex justify-between items-center font-bold text-slate-900 cursor-pointer list-none text-sm sm:text-base">
+                    <span>What payment methods are supported?</span>
+                    <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400 group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <p class="text-xs sm:text-sm text-slate-600 mt-3 leading-relaxed">
+                    We accept UPI (Google Pay, PhonePe, Paytm, BHIM), RuPay, Visa, MasterCard debit & credit cards, Net Banking, and instant QR Code payments.
+                </p>
+            </details>
+
+            <details class="group p-5 rounded-2xl bg-slate-50 border border-slate-200 transition">
+                <summary class="flex justify-between items-center font-bold text-slate-900 cursor-pointer list-none text-sm sm:text-base">
+                    <span>Is there a money-back guarantee?</span>
+                    <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400 group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <p class="text-xs sm:text-sm text-slate-600 mt-3 leading-relaxed">
+                    Yes! We provide an unconditional <strong>30-day money-back guarantee on all web hosting plans</strong>. Per standard ICANN registry regulations, domain name registration fees (or wholesale domain value if included as a Free Domain) are non-refundable. In case of cancellation, you will receive a full refund for the hosting service and retain 100% ownership of your registered domain name for the entire 1-year registration period.
+                </p>
+            </details>
+        </div>
+    </div>
+</section>
+
+<!-- Modal: Write a Customer Review -->
+<div id="review-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-7 shadow-2xl relative">
+        <button onclick="closeReviewModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+
+        <div class="text-center mb-6">
+            <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-500 mx-auto flex items-center justify-center mb-3">
+                <i data-lucide="star" class="w-6 h-6 fill-amber-500"></i>
+            </div>
+            <h3 class="text-xl font-extrabold text-slate-900">Share Your Experience</h3>
+            <p class="text-xs text-slate-500 mt-1">Aapka genuine review doosre clients ke liye helpful hoga.</p>
+        </div>
+
+        <form id="review-form" onsubmit="submitCustomerReview(event)" class="space-y-4">
+            <!-- Star Rating Picker -->
+            <div class="text-center pb-2 border-b border-slate-100">
+                <label class="block text-xs font-bold text-slate-700 mb-2">Overall Rating</label>
+                <div class="inline-flex items-center gap-2 cursor-pointer" id="star-picker">
+                    <button type="button" onclick="setRating(1)" class="star-btn text-2xl text-amber-400 hover:scale-110 transition">★</button>
+                    <button type="button" onclick="setRating(2)" class="star-btn text-2xl text-amber-400 hover:scale-110 transition">★</button>
+                    <button type="button" onclick="setRating(3)" class="star-btn text-2xl text-amber-400 hover:scale-110 transition">★</button>
+                    <button type="button" onclick="setRating(4)" class="star-btn text-2xl text-amber-400 hover:scale-110 transition">★</button>
+                    <button type="button" onclick="setRating(5)" class="star-btn text-2xl text-amber-400 hover:scale-110 transition">★</button>
+                </div>
+                <input type="hidden" id="review-rating" value="5">
+                <span id="rating-label" class="block text-[11px] font-bold text-amber-600 mt-1">5 Stars (Excellent Experience)</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Your Full Name *</label>
+                    <input type="text" id="review-name" placeholder="e.g. Vikas Bajpai" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-semibold focus:border-primary-600 focus:bg-white focus:outline-none">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Business / City *</label>
+                    <input type="text" id="review-role" placeholder="e.g. Agency Owner, Kanpur" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-semibold focus:border-primary-600 focus:bg-white focus:outline-none">
+                </div>
+            </div>
+
+            <div class="text-xs">
+                <label class="block font-bold text-slate-700 mb-1">Email Address (Optional)</label>
+                <input type="email" id="review-email" placeholder="e.g. you@example.com" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:border-primary-600 focus:bg-white focus:outline-none">
+            </div>
+
+            <div class="text-xs">
+                <label class="block font-bold text-slate-700 mb-1">Your Review *</label>
+                <textarea id="review-comment" rows="3" placeholder="Aapko HostingCart ki speed, uptime, pricing ya customer support kaisa laga?" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:border-primary-600 focus:bg-white focus:outline-none leading-relaxed"></textarea>
+            </div>
+
+            <button type="submit" id="review-submit-btn" class="w-full py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-black text-xs rounded-xl shadow-md shadow-primary-600/20 transition flex items-center justify-center gap-2">
+                <i data-lucide="send" class="w-4 h-4"></i>
+                <span>Publish Review Instantly</span>
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/app.js"></script>
+<script>
+    let selectedRating = 5;
+    const ratingLabels = {
+        1: "1 Star (Needs Improvement)",
+        2: "2 Stars (Fair)",
+        3: "3 Stars (Good)",
+        4: "4 Stars (Very Good)",
+        5: "5 Stars (Excellent Experience)"
+    };
+
+    function openReviewModal() {
+        document.getElementById('review-modal').classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function closeReviewModal() {
+        document.getElementById('review-modal').classList.add('hidden');
+    }
+
+    function setRating(stars) {
+        selectedRating = stars;
+        document.getElementById('review-rating').value = stars;
+        document.getElementById('rating-label').innerText = ratingLabels[stars] || `${stars} Stars`;
+
+        const buttons = document.querySelectorAll('#star-picker .star-btn');
+        buttons.forEach((btn, idx) => {
+            if (idx < stars) {
+                btn.classList.add('text-amber-400');
+                btn.classList.remove('text-slate-200');
+            } else {
+                btn.classList.remove('text-amber-400');
+                btn.classList.add('text-slate-200');
+            }
+        });
+    }
+
+    async function submitCustomerReview(e) {
+        e.preventDefault();
+        const btn = document.getElementById('review-submit-btn');
+        btn.disabled = true;
+        btn.innerHTML = `<span class="animate-spin inline-block mr-2">⚙</span> Submitting...`;
+
+        const payload = {
+            rating: selectedRating,
+            name: document.getElementById('review-name').value.trim(),
+            role_or_city: document.getElementById('review-role').value.trim(),
+            email: document.getElementById('review-email').value.trim(),
+            comment: document.getElementById('review-comment').value.trim()
+        };
+
+        try {
+            const res = await fetch('/api/reviews/submit', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="send" class="w-4 h-4"></i><span>Publish Review Instantly</span>`;
+            if (window.lucide) lucide.createIcons();
+
+            if (data.success) {
+                alert(data.message || "Thank you! Your review is now live.");
+                closeReviewModal();
+                window.location.reload();
+            } else {
+                alert(data.message || "Failed to submit review.");
+            }
+        } catch (err) {
+            btn.disabled = false;
+            btn.innerHTML = `<span>Submit</span>`;
+            alert("Network error occurred.");
+            console.error(err);
+        }
+    }
+</script>
+{% endblock %}
