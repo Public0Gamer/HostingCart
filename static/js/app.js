@@ -57,21 +57,25 @@ function setBillingCycle(cycle) {
         const subtext = container ? container.querySelector('.plan-subtext') : null;
         const regPrice = container ? container.querySelector('.plan-regular-price') : null;
 
+        const renewalRates = {
+            '69': '199',
+            '139': '349',
+            '229': '599',
+            '449': '999'
+        };
+        const rate = renewalRates[fortyEight] || 'standard rate';
+
         if (cycle === 'monthly') {
             el.innerText = parseFloat(monthly).toFixed(2);
-            if (subtext) subtext.innerText = `Billed ₹${monthly} monthly. Cancel anytime.`;
+            if (subtext) subtext.innerText = `Billed monthly. Cancel anytime.`;
             if (regPrice) regPrice.innerText = `₹${Math.round(parseInt(monthly) * 1.5)}`;
         } else if (cycle === '48m') {
             el.innerText = parseFloat(fortyEight).toFixed(2);
-            const total = parseInt(fortyEight) * 48;
-            const regTotal = total * 3;
-            if (subtext) subtext.innerText = `Get 48 months for ₹${total.toLocaleString('en-IN')}.00 (regular price ₹${regTotal.toLocaleString('en-IN')}). Cancel anytime.`;
+            if (subtext) subtext.innerText = `Renews at ₹${rate}/mo. Cancel anytime with zero penalties.`;
             if (regPrice) regPrice.innerText = `₹${Math.round(parseInt(fortyEight) * 2.5)}`;
         } else {
             el.innerText = parseFloat(yearly).toFixed(2);
-            const total = parseInt(yearly) * 12;
-            const regTotal = total * 2;
-            if (subtext) subtext.innerText = `Get 12 months for ₹${total.toLocaleString('en-IN')}.00 (regular price ₹${regTotal.toLocaleString('en-IN')}). Cancel anytime.`;
+            if (subtext) subtext.innerText = `Renews annually. 30-day money-back guarantee.`;
             if (regPrice) regPrice.innerText = `₹${Math.round(parseInt(yearly) * 2)}`;
         }
     });
