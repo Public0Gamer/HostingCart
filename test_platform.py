@@ -19,8 +19,8 @@ class TestHostingCartPlatform(unittest.TestCase):
         """Clean up any test records created during automated test suite execution"""
         conn = get_db()
         cursor = conn.cursor()
-        test_domains = ('testbrandindia.in', 'kanpurnewtech.in', 'liveverifytest.in', 'statuspolltest.in', 'hostingcart98765test.in', 'sandboxtestbrand.com', 'rzpteststore.in', 'cfteststore.in')
-        test_emails = ('buyer@testbrand.com', 'rohit@kanpurnewtech.in', 'verifytest@brand.in', 'polluser@domain.in', 'sandboxbuyer@brand.com', 'rzpbuyer@teststore.in', 'cfbuyer@teststore.in')
+        test_domains = ('testbrandindia.in', 'kanpurnewtech.in', 'liveverifytest.in', 'statuspolltest.in', 'hostingcart98765test.in', 'sandboxtestbrand.com', 'rzpteststore.in', 'cfteststore.in', 'mytestbrand1month.in', 'alreadyregistered.com', 'myfreedomain12m.in', 'starterdomain.com')
+        test_emails = ('buyer@testbrand.com', 'rohit@kanpurnewtech.in', 'verifytest@brand.in', 'polluser@domain.in', 'sandboxbuyer@brand.com', 'rzpbuyer@teststore.in', 'cfbuyer@teststore.in', 'buyer1m@test.com')
         placeholders_d = ', '.join(['?'] * len(test_domains))
         placeholders_e = ', '.join(['?'] * len(test_emails))
         cursor.execute(f"DELETE FROM dns_records WHERE account_id IN (SELECT id FROM hosting_accounts WHERE domain_name IN ({placeholders_d}))", test_domains)
@@ -29,6 +29,7 @@ class TestHostingCartPlatform(unittest.TestCase):
         cursor.execute(f"DELETE FROM orders WHERE domain_name IN ({placeholders_d})", test_domains)
         cursor.execute(f"DELETE FROM users WHERE email IN ({placeholders_e})", test_emails)
         cursor.execute("DELETE FROM reviews WHERE email = 'pooja@kanpursilk.com'")
+        cursor.execute("DELETE FROM orders WHERE payment_status = 'pending'")
         conn.commit()
         conn.close()
 

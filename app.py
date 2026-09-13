@@ -1874,6 +1874,15 @@ def admin_test_registrar():
     result = DomainRegistrarClient.test_connection()
     return jsonify(result)
 
+@app.route('/api/admin/server-ip', methods=['GET'])
+@admin_required
+def admin_server_ip():
+    try:
+        ip = requests.get('https://api.ipify.org?format=json', timeout=5).json().get('ip')
+        return jsonify({"success": True, "ip": ip})
+    except Exception:
+        return jsonify({"success": False, "ip": "152.59.176.227"})
+
 @app.route('/api/admin/server/test', methods=['POST'])
 @admin_required
 def admin_test_server():

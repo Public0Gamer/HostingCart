@@ -703,10 +703,10 @@
 
                     <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                         <div>
-                            <span class="font-bold text-slate-800">Your Current Outbound IP:</span>
+                            <span class="font-bold text-slate-800">Your Backend Server IP:</span>
                             <code class="font-mono text-indigo-600 font-bold ml-1" id="current-ip-text">Detecting...</code>
                         </div>
-                        <span class="text-[10px] text-slate-500 font-semibold">(Add this IP in ConnectReseller &gt; Settings &gt; API &gt; Whitelist)</span>
+                        <span class="text-[10px] text-slate-500 font-semibold">(ConnectReseller &gt; Settings &gt; API &gt; Authorized IPs me <strong class="text-indigo-600">0.0.0.0/0</strong> ya ye IP daalein)</span>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
@@ -1477,11 +1477,11 @@ Login Panel: http://127.0.0.1:5000/login`);
                         <div class="p-3 bg-white/95 rounded-xl text-[11px] text-slate-700 space-y-1.5 border border-rose-200 shadow-sm">
                             <div class="flex items-center gap-1.5 text-rose-800 font-bold text-xs mb-1">
                                 <i data-lucide="help-circle" class="w-4 h-4"></i>
-                                <span>ConnectReseller 401 Fix (3 Easy Steps):</span>
+                                <span>ConnectReseller 401 Fix (Permanent Solution):</span>
                             </div>
-                            <p><strong>Step 1 (API Key):</strong> ConnectReseller dashboard me login karein &rarr; <em>Settings &gt; API</em> me jayein &rarr; Wahan se 32+ characters ka real <strong>API Key</strong> copy karke yahan daalein (Apna account login password mat daaliye).</p>
-                            <p><strong>Step 2 (IP Whitelist):</strong> ConnectReseller me <em>Settings &gt; API</em> me <strong>Authorized IPs</strong> me apna ye IP daal dijiye: <code class="px-1.5 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded font-mono font-bold">${currentIp}</code></p>
-                            <p><strong>Step 3 (Immediate ₹0 Testing):</strong> Agar ConnectReseller me wallet add nahi kiya hai ya account verification pending hai, to upar <strong>"Sandbox Test Mode"</strong> tick karke <strong>Save</strong> dabayein &mdash; bina kisi cost ke full testing shuru ho jayegi!</p>
+                            <p><strong>Cloud Server (Render) Fix:</strong> Render cloud server ka IP dynamic hota hai. ConnectReseller dashboard me <em>Settings &gt; API</em> par jayein, aur <strong>Authorized IPs</strong> box me <code class="px-1.5 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded font-mono font-bold">0.0.0.0/0</code> daal kar Save kar dijiye (Isse Render ki API request kabhi block nahi hogi).</p>
+                            <p><strong>Specific Server IP:</strong> Ya fir ConnectReseller me ye server IP add karein: <code class="px-1.5 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded font-mono font-bold">${currentIp}</code></p>
+                            <p><strong>Immediate ₹0 Testing:</strong> Agar ConnectReseller me wallet activation pending hai, to upar <strong>"Sandbox Test Mode"</strong> tick karke <strong>Save</strong> dabayein &mdash; bina kisi cost ke full testing shuru ho jayegi!</p>
                         </div>
                     `;
                     if (window.lucide) lucide.createIcons();
@@ -1498,17 +1498,25 @@ Login Panel: http://127.0.0.1:5000/login`);
         }
     }
 
-    // Auto-detect public outbound IP for ConnectReseller whitelist
+    // Auto-detect public outbound IP from backend server
     document.addEventListener('DOMContentLoaded', function() {
-        fetch('https://api.ipify.org?format=json')
+        fetch('/api/admin/server-ip')
             .then(r => r.json())
             .then(d => {
                 const el = document.getElementById('current-ip-text');
                 if (el && d.ip) el.innerText = d.ip;
             })
             .catch(() => {
-                const el = document.getElementById('current-ip-text');
-                if (el) el.innerText = '{{ settings.server_public_ip or "129.154.22.84" }}';
+                fetch('https://api.ipify.org?format=json')
+                    .then(r => r.json())
+                    .then(d => {
+                        const el = document.getElementById('current-ip-text');
+                        if (el && d.ip) el.innerText = d.ip;
+                    })
+                    .catch(() => {
+                        const el = document.getElementById('current-ip-text');
+                        if (el) el.innerText = '{{ settings.server_public_ip or "129.154.22.84" }}';
+                    });
             });
     });
 
