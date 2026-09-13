@@ -762,7 +762,7 @@
                         </div>
                     </div>
                     <span class="text-[10px] font-mono px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">
-                        Node: 129.154.22.84
+                        Node: 152.58.156.166
                     </span>
                 </div>
 
@@ -778,14 +778,14 @@
                         </div>
                         <div>
                             <label class="block font-bold text-slate-700 mb-1">Server Public IP</label>
-                            <input type="text" id="setting-ip" value="{{ settings.server_public_ip or '129.154.22.84' }}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono">
+                            <input type="text" id="setting-ip" value="{{ settings.server_public_ip or '152.58.156.166' }}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block font-bold text-slate-700 mb-1">Panel Host URL</label>
-                            <input type="text" id="setting-host" value="{{ settings.hestia_host or 'https://129.154.22.84:8083' }}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono">
+                            <input type="text" id="setting-host" value="{{ settings.hestia_host or 'https://152.58.156.166:8083' }}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono">
                         </div>
                         <div>
                             <label class="block font-bold text-slate-700 mb-1">Panel Admin Password / API Key</label>
@@ -816,6 +816,63 @@
                     </div>
                     <code class="text-emerald-400 select-all block break-all">wget https://raw.githubusercontent.com/hestiacp/hestiacp/release/install/hst-install.sh && bash hst-install.sh -y -f</code>
                 </div>
+            <!-- STEP 4: Automated Email Notifications (SMTP Mailer) -->
+            <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-7 h-7 rounded-xl bg-purple-600 text-white flex items-center justify-center text-xs font-black">4</span>
+                        <div>
+                            <h3 class="text-base font-extrabold text-slate-900">Automated Customer Email &amp; SMTP Engine</h3>
+                            <p class="text-[11px] text-slate-500">Auto-sends invoices, server IP, credentials &amp; login links on payment</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-mono px-2.5 py-1 rounded-lg bg-purple-50 text-purple-800 border border-purple-200 font-bold flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
+                        <span>Auto-Dispatch Active</span>
+                    </span>
+                </div>
+
+                <form onsubmit="saveSmtpSettings(event)" class="space-y-3.5 text-xs">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">SMTP Host Server</label>
+                            <input type="text" id="setting-smtp-host" value="{{ settings.smtp_host or 'smtp.gmail.com' }}" placeholder="e.g. smtp.gmail.com" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">SMTP Port</label>
+                            <input type="number" id="setting-smtp-port" value="{{ settings.smtp_port or '587' }}" placeholder="587 or 465" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">SMTP Username / Email</label>
+                            <input type="email" id="setting-smtp-user" value="{{ settings.smtp_user or 'voltaramedia@gmail.com' }}" placeholder="your-email@gmail.com" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">SMTP Password / Gmail App Password</label>
+                            <input type="password" id="setting-smtp-pass" value="{{ settings.smtp_password or '' }}" placeholder="Enter 16-digit App Password" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">From Sender Address</label>
+                        <input type="text" id="setting-smtp-from" value="{{ settings.smtp_from_email or 'voltaramedia@gmail.com' }}" placeholder="support@hostingcart.in or voltaramedia@gmail.com" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono">
+                    </div>
+
+                    <div class="flex items-center gap-2 pt-2">
+                        <button type="submit" id="btn-save-smtp" class="flex-grow py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl transition shadow-sm flex items-center justify-center gap-1.5">
+                            <i data-lucide="save" class="w-4 h-4"></i>
+                            <span>Save SMTP Settings</span>
+                        </button>
+                        <button type="button" onclick="testSmtpConnection()" id="btn-test-smtp" class="px-4 py-2.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 font-bold rounded-xl transition flex items-center gap-1.5">
+                            <i data-lucide="send" class="w-3.5 h-3.5 text-purple-600"></i>
+                            <span>Send Test Email</span>
+                        </button>
+                    </div>
+                </form>
+
+                <div id="smtp-test-result" class="hidden mt-3 p-3 rounded-xl text-xs font-mono"></div>
             </div>
         </div>
 
@@ -954,7 +1011,7 @@
             </div>
             <div class="flex justify-between items-center py-1 border-b border-slate-200">
                 <span class="text-slate-500 font-sans font-semibold">Server IP:</span>
-                <strong class="text-slate-700" id="modal-acc-ip">129.154.22.84</strong>
+                <strong class="text-slate-700" id="modal-acc-ip">152.58.156.166</strong>
             </div>
             <div class="flex justify-between items-center py-1">
                 <span class="text-slate-500 font-sans font-semibold">Expires On:</span>
@@ -1232,7 +1289,7 @@
                 document.getElementById('modal-acc-user').innerText = acc.cpanel_username;
                 document.getElementById('modal-acc-pass').innerText = acc.cpanel_password;
                 document.getElementById('modal-acc-ns').innerText = `${acc.nameserver1} / ${acc.nameserver2}`;
-                document.getElementById('modal-acc-ip').innerText = acc.server_ip || '129.154.22.84';
+                document.getElementById('modal-acc-ip').innerText = acc.server_ip || '152.58.156.166';
                 document.getElementById('modal-acc-expires').innerText = acc.expires_at;
 
                 // Set Control Panel Link
@@ -1477,32 +1534,51 @@ Login Panel: http://127.0.0.1:5000/login`);
                     saveBox.className = 'mt-3 p-3 rounded-xl text-xs font-mono bg-emerald-50 text-emerald-900 border border-emerald-200';
                     saveBox.innerHTML = `<strong>✔ 100% VERIFIED & SAVED:</strong> ConnectReseller LIVE API authenticated successfully! Real ICANN wholesale registration is now live and active.`;
                 }
-            } else {
-                // Rejected by ConnectReseller - NEVER show green!
+            } else if (testData.code === 401 || testData.status === 'ip_pending') {
+                // Key is saved in DB, but ConnectReseller returned 401 due to IP whitelist
                 if (badge) {
-                    badge.className = 'text-[10px] font-mono px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 font-bold flex items-center gap-1.5';
-                    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span><span>Connection Failed (Unverified)</span>`;
+                    badge.className = 'text-[10px] font-mono px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 font-bold flex items-center gap-1.5';
+                    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span><span>ConnectReseller (IP Whitelist Pending)</span>`;
                 }
                 if (saveBox) {
                     saveBox.classList.remove('hidden');
-                    saveBox.className = 'mt-3 p-3.5 rounded-xl text-xs bg-rose-50 text-rose-900 border border-rose-200 space-y-2.5 font-sans';
+                    saveBox.className = 'mt-3 p-3.5 rounded-xl text-xs bg-amber-50 text-amber-950 border border-amber-200 space-y-2 font-sans';
+                    saveBox.innerHTML = `
+                        <div class="font-bold text-amber-900 text-xs flex items-center gap-1.5">
+                            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+                            <span>✔ Credentials Saved to Database! (ConnectReseller IP Authorization Pending)</span>
+                        </div>
+                        <div class="p-2.5 bg-white/95 rounded-xl text-[11px] text-slate-700 space-y-1.5 border border-amber-200 shadow-sm">
+                            <p><strong>Aapka API Key database me permanently save ho gaya hai.</strong></p>
+                            <p class="text-slate-600">ConnectReseller server ne <code class="px-1.5 py-0.5 bg-amber-100 text-amber-900 font-mono font-bold rounded">Status 401 (Unauthorized)</code> response diya hai. Iska matlab yeh hai ki ConnectReseller tabhi API call allow karta hai jab unke dashboard me aapka <strong>Server IP (<code class="font-mono text-indigo-700 font-bold">${currentIp}</code>)</strong> add ho.</p>
+                            <div class="pt-1 text-slate-600">
+                                <strong>Aapke 2 Options:</strong>
+                                <ul class="list-disc list-inside space-y-0.5 mt-0.5">
+                                    <li><strong>Instant ₹0 Testing (No IP needed):</strong> Upar <em>"Sandbox Test Mode"</em> tick karke Save karein &mdash; bina kisi IP ya paise ke poora system live chalega.</li>
+                                    <li><strong>Real ICANN Live Registration:</strong> ConnectReseller portal &gt; Settings &gt; API &gt; Authorized IPs me apna IP <code class="px-1 py-0.5 bg-slate-100 font-mono font-bold text-indigo-700 rounded">${currentIp}</code> add kar dein.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                // Rejected by ConnectReseller (e.g. invalid key 402)
+                if (badge) {
+                    badge.className = 'text-[10px] font-mono px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 font-bold flex items-center gap-1.5';
+                    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span><span>Invalid API Key</span>`;
+                }
+                if (saveBox) {
+                    saveBox.classList.remove('hidden');
+                    saveBox.className = 'mt-3 p-3.5 rounded-xl text-xs bg-rose-50 text-rose-900 border border-rose-200 space-y-2 font-sans';
                     saveBox.innerHTML = `
                         <div class="font-bold text-rose-800 text-xs flex items-center gap-1.5">
                             <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-600"></i>
-                            <span>❌ ConnectReseller Live Verification FAILED:</span>
+                            <span>❌ ConnectReseller Rejected API Key:</span>
                         </div>
                         <div class="font-mono bg-white p-2 rounded-lg border border-rose-200 text-rose-700 text-[11px] font-bold">${testData.message || 'API rejected credentials'}</div>
                         <p class="text-[11px] text-rose-800 leading-relaxed">
-                            Yeh credentials database me save ho gaye hain, lekin <strong>LIVE Active NAHI hua</strong> kyunki ConnectReseller API ne authentication reject kar di. Jab tak ConnectReseller se verified response nahi aayega, status Inactive rahega.
+                            ConnectReseller dashboard me jakar check karein ki API Key me koi typo ya whitespace mistake to nahi hai.
                         </p>
-                        <div class="p-2.5 bg-white/95 rounded-xl text-[11px] text-slate-700 space-y-1 border border-rose-200">
-                            <strong class="text-slate-800 block text-xs">Isko Solve Kaise Karein:</strong>
-                            <ol class="list-decimal list-inside pl-1 space-y-1 text-slate-600">
-                                <li>ConnectReseller Dashboard me jayein &gt; <em>Settings &gt; API</em> me <strong>Authorized IPs</strong> me apna Server IP (<code class="px-1 py-0.5 bg-slate-100 text-indigo-700 font-mono font-bold rounded">${currentIp}</code>) add karein.</li>
-                                <li>Apna <strong>Wholesale API Key</strong> dobara check karein (kahi koi space ya missing character na ho).</li>
-                                <li>Agar ConnectReseller me abhi wallet balance ya IP approval pending hai, to upar <strong>"Sandbox Test Mode"</strong> tick karke <strong>Save</strong> karein (Isme ₹0 me poora system chalega).</li>
-                            </ol>
-                        </div>
                     `;
                 }
             }
@@ -1564,23 +1640,32 @@ Login Panel: http://127.0.0.1:5000/login`);
                     resBox.className = 'mt-3 p-3 rounded-xl text-xs font-mono bg-emerald-50 text-emerald-900 border border-emerald-200';
                     let balText = data.balance !== undefined ? `<br><span class="text-[11px] text-emerald-700">Provider: ${data.provider} | Balance: ₹${data.balance}</span>` : `<br><span class="text-[11px] text-emerald-700">Provider: ${data.provider}</span>`;
                     resBox.innerHTML = `<strong>✔ SUCCESS:</strong> ${data.message} ${balText}`;
+                } else if (data.code === 401 || data.status === 'ip_pending') {
+                    if (badge) {
+                        badge.className = 'text-[10px] font-mono px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 font-bold flex items-center gap-1.5';
+                        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span><span>ConnectReseller (IP Whitelist Pending)</span>`;
+                    }
+                    resBox.className = 'mt-3 p-3.5 rounded-xl text-xs bg-amber-50 text-amber-950 border border-amber-200 space-y-2 font-sans';
+                    resBox.innerHTML = `
+                        <div class="font-bold text-amber-900 text-xs flex items-center gap-1.5">
+                            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+                            <span>API Key Valid & Saved! (ConnectReseller IP Whitelist Pending)</span>
+                        </div>
+                        <div class="p-2.5 bg-white/95 rounded-xl text-[11px] text-slate-700 space-y-1.5 border border-amber-200 shadow-sm">
+                            <p>ConnectReseller server ne <code class="px-1.5 py-0.5 bg-amber-100 text-amber-900 font-mono font-bold rounded">Status 401 (Unauthorized)</code> response diya hai. ConnectReseller ke firewall me API request tabhi pass hoti hai jab caller IP unke "Authorized IPs" me ho.</p>
+                            <p><strong>To activate LIVE ICANN:</strong> ConnectReseller portal &gt; <em>Settings &gt; API</em> me <strong>Authorized IPs</strong> me apna Server IP: <code class="px-1.5 py-0.5 bg-slate-100 font-mono font-bold text-indigo-700 rounded">${currentIp}</code> add kar dein.</p>
+                            <p class="text-slate-600"><strong>Note:</strong> Agar abhi IP add nahi karna hai, to upar <strong>"Sandbox Test Mode"</strong> tick karke bina kisi rok-tok ke ₹0 me testing jari rakh sakte hain!</p>
+                        </div>
+                    `;
                 } else {
                     if (badge) {
                         badge.className = 'text-[10px] font-mono px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 font-bold flex items-center gap-1.5';
-                        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span><span>Connection Failed (Unverified)</span>`;
+                        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span><span>Invalid API Key</span>`;
                     }
-                    resBox.className = 'mt-3 p-3.5 rounded-xl text-xs bg-rose-50 text-rose-900 border border-rose-200 space-y-2.5 font-sans';
+                    resBox.className = 'mt-3 p-3.5 rounded-xl text-xs bg-rose-50 text-rose-900 border border-rose-200 space-y-2 font-sans';
                     resBox.innerHTML = `
                         <div class="font-bold font-mono text-rose-800 text-[11px]">RESPONSE: ${data.message}</div>
-                        <div class="p-3 bg-white/95 rounded-xl text-[11px] text-slate-700 space-y-1.5 border border-rose-200 shadow-sm">
-                            <div class="flex items-center gap-1.5 text-rose-800 font-bold text-xs mb-1">
-                                <i data-lucide="help-circle" class="w-4 h-4"></i>
-                                <span>ConnectReseller Rejected - Fix Guide:</span>
-                            </div>
-                            <p><strong>1. Server IP Whitelist:</strong> ConnectReseller dashboard me <em>Settings &gt; API</em> par jayein, aur <strong>Authorized IPs</strong> box me apna Server IP add karein: <code class="px-1.5 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded font-mono font-bold">${currentIp}</code> (ConnectReseller me CIDR jaise /0 ya /24 allow nahi hai, sirf exact IP daalein).</p>
-                            <p><strong>2. Wholesale API Key:</strong> Wholesale API Key ko check karein ki koi extra space ya character miss na ho.</p>
-                            <p><strong>3. Immediate ₹0 Testing:</strong> Agar ConnectReseller me wallet activation pending hai, to upar <strong>"Sandbox Test Mode"</strong> tick karke <strong>Save</strong> dabayein &mdash; bina kisi cost ke full testing shuru ho jayegi!</p>
-                        </div>
+                        <p class="text-[11px] text-rose-800">ConnectReseller ne is API Key ko reject kar diya hai. Kripya apna ConnectReseller Wholesale API Key check karein.</p>
                     `;
                 }
             }
@@ -1614,7 +1699,7 @@ Login Panel: http://127.0.0.1:5000/login`);
                     })
                     .catch(() => {
                         const el = document.getElementById('current-ip-text');
-                        if (el) el.innerText = '{{ settings.server_public_ip or "129.154.22.84" }}';
+                        if (el) el.innerText = '{{ settings.server_public_ip or "152.58.156.166" }}';
                     });
             });
     });
@@ -1686,6 +1771,91 @@ Login Panel: http://127.0.0.1:5000/login`);
         });
         const data = await res.json();
         alert(data.message || 'Server settings saved successfully!');
+    }
+
+    // 10.1 SAVE SMTP SETTINGS
+    async function saveSmtpSettings(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btn-save-smtp');
+        btn.disabled = true;
+        btn.innerHTML = `<span class="animate-spin inline-block mr-1">⚙</span> Saving...`;
+
+        const payload = {
+            smtp_host: document.getElementById('setting-smtp-host').value.trim(),
+            smtp_port: document.getElementById('setting-smtp-port').value.trim(),
+            smtp_user: document.getElementById('setting-smtp-user').value.trim(),
+            smtp_password: document.getElementById('setting-smtp-pass').value.trim(),
+            smtp_from_email: document.getElementById('setting-smtp-from').value.trim()
+        };
+
+        try {
+            const res = await fetch('/api/admin/settings/save', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i><span>Save SMTP Settings</span>`;
+            if (window.lucide) lucide.createIcons();
+            alert(data.message || 'SMTP settings saved successfully!');
+        } catch (err) {
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i><span>Save SMTP Settings</span>`;
+            alert('Failed to save SMTP settings.');
+        }
+    }
+
+    // 10.2 TEST SMTP CONNECTION
+    async function testSmtpConnection() {
+        const btn = document.getElementById('btn-test-smtp');
+        const resBox = document.getElementById('smtp-test-result');
+        btn.disabled = true;
+        btn.innerHTML = `<span class="animate-spin inline-block mr-1">⚙</span> Sending...`;
+        if (resBox) resBox.classList.add('hidden');
+
+        try {
+            await fetch('/api/admin/settings/save', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    smtp_host: document.getElementById('setting-smtp-host').value.trim(),
+                    smtp_port: document.getElementById('setting-smtp-port').value.trim(),
+                    smtp_user: document.getElementById('setting-smtp-user').value.trim(),
+                    smtp_password: document.getElementById('setting-smtp-pass').value.trim(),
+                    smtp_from_email: document.getElementById('setting-smtp-from').value.trim()
+                })
+            });
+
+            const res = await fetch('/api/admin/email/test', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({})
+            });
+            const data = await res.json();
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="send" class="w-3.5 h-3.5 text-purple-600"></i><span>Send Test Email</span>`;
+            if (window.lucide) lucide.createIcons();
+
+            if (resBox) {
+                resBox.classList.remove('hidden');
+                if (data.success) {
+                    resBox.className = 'mt-3 p-3 rounded-xl text-xs font-mono bg-emerald-50 text-emerald-900 border border-emerald-200';
+                    resBox.innerHTML = `<strong>✔ SUCCESS:</strong> ${data.message}`;
+                } else {
+                    resBox.className = 'mt-3 p-3 rounded-xl text-xs font-mono bg-rose-50 text-rose-900 border border-rose-200';
+                    resBox.innerHTML = `<strong>FAILED:</strong> ${data.message || 'SMTP Connection failed'}`;
+                }
+            }
+        } catch (err) {
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="send" class="w-3.5 h-3.5 text-purple-600"></i><span>Send Test Email</span>`;
+            if (resBox) {
+                resBox.classList.remove('hidden');
+                resBox.className = 'mt-3 p-3 rounded-xl text-xs font-mono bg-rose-50 text-rose-900 border border-rose-200';
+                resBox.innerHTML = `<strong>ERROR:</strong> Network error: ${err}`;
+            }
+        }
     }
 
     // 11. TRIGGER LIFECYCLE CRON

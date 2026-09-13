@@ -166,7 +166,7 @@
                                 <span class="text-slate-500 text-[11px]">Instant wholesale DNS & registrar setup</span>
                             </div>
                         </div>
-                        <span class="font-mono font-bold text-slate-900 text-xs" id="display-domain-fee">₹799.00/yr</span>
+                        <span class="font-mono font-bold text-slate-900 text-xs" id="display-domain-fee">₹1,299.00/yr</span>
                     </label>
                     <label class="flex items-center justify-between p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-blue-600 cursor-pointer transition text-xs">
                         <div class="flex items-center gap-2.5">
@@ -340,7 +340,7 @@
                             <span class="text-slate-500" id="summary-domain-label">Domain Registration (1st Year)</span>
                         </div>
                         <div class="text-right" id="summary-domain-price">
-                            <span class="text-slate-400 line-through font-mono text-[11px] block">₹799.00</span>
+                            <span class="text-slate-400 line-through font-mono text-[11px] block">₹1,299.00</span>
                             <span class="font-mono font-black text-emerald-600 uppercase text-[11px]">Free</span>
                         </div>
                     </div>
@@ -486,10 +486,18 @@
                 <i data-lucide="check" class="w-8 h-8"></i>
             </div>
             <h3 class="text-2xl font-black text-slate-900 mb-2">Payment Received!</h3>
-            <p class="text-xs text-slate-600 mb-6">Your web hosting node & domain have been automatically provisioned.</p>
-            <a id="success-hpanel-btn" href="/hpanel" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl block transition shadow-md">
-                Open Control Panel Dashboard
-            </a>
+            <p class="text-xs text-slate-600 mb-4">Your web hosting node &amp; domain have been automatically provisioned.</p>
+            <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 mb-5 font-semibold text-left">
+                <p>✔ <strong>Confirmation Email Sent:</strong> Complete server IP, nameservers, login credentials, and your official invoice link have been sent to your email.</p>
+            </div>
+            <div class="space-y-2">
+                <a id="success-invoice-btn" href="#" target="_blank" class="w-full py-3 bg-slate-900 hover:bg-black text-white font-bold text-xs rounded-xl block transition shadow text-center">
+                    📥 View &amp; Print Official Invoice
+                </a>
+                <a id="success-hpanel-btn" href="/hpanel" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl block transition shadow-md text-center">
+                    🚀 Open Control Panel Dashboard
+                </a>
+            </div>
         </div>
     </div>
 </div>
@@ -546,13 +554,30 @@
     let domainAction = "register"; // 'register' or 'existing'
 
     function isDomainFreeWithCurrentSelection() {
-        return (planData.free_domain === 1 && (activeCycle === 'yearly' || activeCycle === '48m'));
+        if (planData.free_domain !== 1 || (activeCycle !== 'yearly' && activeCycle !== '48m')) {
+            return false;
+        }
+        const planSlug = (planData.slug || '').toLowerCase();
+        // Business Pro & Enterprise Cloud: all extensions free
+        if (planSlug === 'unlimited' || planSlug === 'cloud-startup') {
+            return true;
+        }
+        // Plus Growth: .in, .co.in, .online, .xyz, .site are free
+        const d = (document.getElementById('checkout-domain') ? document.getElementById('checkout-domain').value : '').trim().toLowerCase();
+        if (d.endsWith('.in') || d.endsWith('.co.in') || d.endsWith('.online') || d.endsWith('.xyz') || d.endsWith('.site') || d.endsWith('.store')) {
+            return true;
+        }
+        return false;
     }
 
     function getDomainRegistrationFee(dom) {
         const d = (dom || (document.getElementById('checkout-domain') ? document.getElementById('checkout-domain').value : '') || '').trim().toLowerCase();
-        if (d.endsWith('.in') || d.endsWith('.co.in')) return 399.0;
-        return 799.0;
+        if (d.endsWith('.co.in')) return 499.0;
+        if (d.endsWith('.in')) return 599.0;
+        if (d.endsWith('.net') || d.endsWith('.org')) return 1349.0;
+        if (d.endsWith('.xyz')) return 299.0;
+        if (d.endsWith('.online') || d.endsWith('.site')) return 199.0;
+        return 1299.0;
     }
 
     function onDomainActionChange(action) {
@@ -939,6 +964,8 @@
                 document.getElementById('modal-step-pay').classList.add('hidden');
                 document.getElementById('modal-step-success').classList.remove('hidden');
                 document.getElementById('success-hpanel-btn').href = `/hpanel?order_id=${currentOrderId}`;
+                const invBtn1 = document.getElementById('success-invoice-btn');
+                if (invBtn1) invBtn1.href = `/invoice/${currentOrderId}`;
                 if (window.lucide) lucide.createIcons();
             }
         } catch (e) {}
@@ -970,6 +997,8 @@
                 document.getElementById('modal-step-pay').classList.add('hidden');
                 document.getElementById('modal-step-success').classList.remove('hidden');
                 document.getElementById('success-hpanel-btn').href = `/hpanel?order_id=${currentOrderId}`;
+                const invBtn2 = document.getElementById('success-invoice-btn');
+                if (invBtn2) invBtn2.href = `/invoice/${currentOrderId}`;
                 if (window.lucide) lucide.createIcons();
             } else {
                 alert(data.message || 'Verification failed. Please check UTR number.');

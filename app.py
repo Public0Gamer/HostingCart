@@ -90,6 +90,9 @@ mimetypes.add_type('image/svg+xml', '.svgz')
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'hostingcart_secret_key_prod_2026_x89f')
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 
 # Initialize DB on first load
 with app.app_context():
@@ -183,11 +186,29 @@ def login_required(f):
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'user_id' not in session or session.get('role') != 'admin':
+        user_id = session.get('user_id')
+        if not user_id or session.get('role') != 'admin':
             if request.is_json or request.path.startswith('/api/'):
                 return jsonify({"success": False, "message": "Admin authorization required."}), 403
             flash('Admin authorization required.', 'danger')
             return redirect(url_for('login'))
+
+        # High-Security DB Verification: Ensure caller is authenticated master admin
+        try:
+            conn = get_db()
+            cursor = conn.cursor()
+            cursor.execute("SELECT id, role, email FROM users WHERE id = ?", (user_id,))
+            u_row = cursor.fetchone()
+            conn.close()
+            if not u_row or u_row['role'] != 'admin' or u_row['email'] != 'voltaramedia@gmail.com':
+                session.clear()
+                if request.is_json or request.path.startswith('/api/'):
+                    return jsonify({"success": False, "message": "Unauthorized admin session terminated."}), 403
+                flash('Access Denied: Master admin credentials required.', 'danger')
+                return redirect(url_for('login'))
+        except Exception:
+            pass
+
         return f(*args, **kwargs)
     return decorated_function
 
@@ -392,18 +413,20 @@ def domain_search():
     name = parts[0]
     searched_tld = parts[1] if len(parts) > 1 and parts[1] else 'com'
 
-    # Realistic TLD Catalog & Pricing (in INR)
+    # Realistic TLD Catalog & Profitable Retail Pricing (in INR)
     tld_pricing = {
-        'com': {'price': 799, 'renewal': 1099},
-        'in': {'price': 399, 'renewal': 699},
-        'org': {'price': 999, 'renewal': 1299},
-        'xyz': {'price': 199, 'renewal': 899},
-        'net': {'price': 899, 'renewal': 1199},
-        'online': {'price': 99, 'renewal': 1499}
+        'com': {'price': 1299, 'renewal': 1399},
+        'in': {'price': 599, 'renewal': 749},
+        'co.in': {'price': 499, 'renewal': 599},
+        'org': {'price': 1349, 'renewal': 1449},
+        'net': {'price': 1349, 'renewal': 1449},
+        'xyz': {'price': 299, 'renewal': 999},
+        'online': {'price': 199, 'renewal': 1499},
+        'site': {'price': 199, 'renewal': 1499}
     }
 
     if searched_tld not in tld_pricing:
-        tld_pricing[searched_tld] = {'price': 899, 'renewal': 1199}
+        tld_pricing[searched_tld] = {'price': 1299, 'renewal': 1399}
 
     # Put user's exact queried extension first
     domain_candidates = [f"{name}.{searched_tld}"]
@@ -425,7 +448,7 @@ def domain_search():
     results = []
     for cand in domain_candidates:
         ext = cand.split('.')[-1]
-        pricing = tld_pricing.get(ext, {'price': 799, 'renewal': 1099})
+        pricing = tld_pricing.get(ext, {'price': 1299, 'renewal': 1399})
         results.append({
             'domain': cand,
             'tld': f".{ext}",
@@ -627,13 +650,32 @@ def create_order():
             else:
                 discount_amount = round(subtotal * (dval / 100.0), 2)
 
-    # Hostinger Free Domain Protection Rule:
+    # Option A: Zero-Loss Free Domain Protection Rule:
     # 1. Single Starter plan NEVER has free domain (plan['free_domain'] == 0)
-    # 2. Plus Growth, Business Pro, Enterprise Cloud only get free domain if billing_cycle in ['yearly', '48m']
-    # 3. 1-Month plan NEVER gets free domain under any circumstances!
-    is_domain_free = (int(plan['free_domain']) == 1 and billing_cycle in ['yearly', '48m'])
-    domain_action = data.get('domain_action', 'register')
+    # 2. 1-Month billing cycle NEVER gets free domain
+    # 3. Plus Growth (yearly/48m): Free domain covers .in, .co.in, .online, .xyz, .site
+    #    (If customer chooses .com, .net, .org on Plus Growth, standard retail fee applies)
+    # 4. Business Pro & Enterprise Cloud (yearly/48m): ALL extensions including .com are 100% FREE!
+    def get_tld_retail_price(dom_name):
+        d = (dom_name or '').lower().strip()
+        if d.endswith('.co.in'): return 499.0
+        if d.endswith('.in'): return 599.0
+        if d.endswith('.net') or d.endswith('.org'): return 1349.0
+        if d.endswith('.xyz'): return 299.0
+        if d.endswith('.online') or d.endswith('.site'): return 199.0
+        return 1299.0
 
+    d_clean = (domain_name or '').lower().strip()
+    is_domain_free = False
+    if int(plan['free_domain']) == 1 and billing_cycle in ['yearly', '48m']:
+        plan_slug = str(plan['slug']).lower()
+        if plan_slug in ['unlimited', 'cloud-startup']:
+            is_domain_free = True
+        elif plan_slug == 'premium':
+            if d_clean.endswith(('.in', '.co.in', '.online', '.xyz', '.site', '.store')):
+                is_domain_free = True
+
+    domain_action = data.get('domain_action', 'register')
     domain_fee = 0.0
     domain_type = 'new'
     if domain_action == 'existing':
@@ -642,13 +684,11 @@ def create_order():
         wholesale_cost = 0.0
     else:
         domain_type = 'new'
+        wholesale_cost = DomainRegistrarClient.get_wholesale_cost(domain_name) if domain_name else 0.0
         if is_domain_free:
             domain_fee = 0.0
-            wholesale_cost = DomainRegistrarClient.get_wholesale_cost(domain_name) if domain_name else 0.0
         else:
-            # Paid domain registration on 1-month or Single Starter plans
-            domain_fee = 399.0 if (domain_name.endswith('.in') or domain_name.endswith('.co.in')) else 799.0
-            wholesale_cost = DomainRegistrarClient.get_wholesale_cost(domain_name) if domain_name else 0.0
+            domain_fee = get_tld_retail_price(domain_name)
 
     base_bill = max(0.0, subtotal - discount_amount) + domain_fee
     # Regulatory & Cloud Infrastructure Surcharge: 12%
@@ -758,7 +798,7 @@ def fulfill_paid_order(order_id):
                 'phone': ord_info['customer_phone']
             }
             reg_res = DomainRegistrarClient.register_domain(ord_info['domain_name'], customer_payload)
-            actual_wholesale = reg_res.get('wholesale_cost', ord_info['wholesale_cost'] or 649.0)
+            actual_wholesale = reg_res.get('wholesale_cost', ord_info['wholesale_cost'] or 1199.0)
             net_profit = round(ord_info['total_amount'] - actual_wholesale, 2)
             cursor.execute("UPDATE orders SET wholesale_cost = ?, profit_amount = ? WHERE id = ?", (actual_wholesale, net_profit, order_id))
             conn.commit()
@@ -773,6 +813,20 @@ def fulfill_paid_order(order_id):
     c_wp.execute("UPDATE hosting_accounts SET wordpress_installed = 1 WHERE order_id = ?", (order_id,))
     conn_wp.commit()
     conn_wp.close()
+
+    # Trigger Automated Customer Welcome Email with Direct Invoice & hPanel Links
+    try:
+        from mailer import send_order_welcome_email
+        base_url = "https://hostingcart.onrender.com"
+        try:
+            if request and hasattr(request, 'host_url') and request.host_url:
+                base_url = request.host_url.rstrip('/')
+        except Exception:
+            pass
+        send_order_welcome_email(order_id, base_url=base_url)
+    except Exception as e:
+        log_activity('EMAIL_TRIGGER_ERR', f"Error initiating mailer for Order #{order_id}: {str(e)}")
+
     return success, msg
 
 @app.route('/api/order/verify-utr', methods=['POST'])
@@ -1899,6 +1953,18 @@ def admin_server_ip():
 def admin_test_server():
     result = test_server_connection()
     return jsonify(result)
+
+@app.route('/api/admin/email/test', methods=['POST'])
+@admin_required
+def admin_test_email():
+    try:
+        from mailer import send_test_email
+        data = request.get_json() or {}
+        to_email = data.get('to_email', '').strip() or session.get('user_email', 'voltaramedia@gmail.com')
+        res = send_test_email(to_email)
+        return jsonify(res)
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Mailer exception: {str(e)}"}), 500
 
 # ==========================================
 # INSTANT LIVE WORDPRESS WEB SANDBOX ROUTES

@@ -13,12 +13,15 @@ class DomainRegistrarClient:
     """Automated wholesale domain registration & profit margin calculator"""
 
     WHOLESALE_COSTS = {
-        'com': 649.0,
-        'in': 399.0,
-        'net': 749.0,
-        'org': 849.0,
-        'xyz': 149.0,
-        'online': 99.0
+        'com': 1199.0,
+        'in': 449.0,
+        'co.in': 349.0,
+        'net': 1199.0,
+        'org': 1199.0,
+        'xyz': 199.0,
+        'online': 99.0,
+        'site': 99.0,
+        'store': 149.0
     }
 
     @staticmethod
@@ -38,8 +41,11 @@ class DomainRegistrarClient:
 
     @classmethod
     def get_wholesale_cost(cls, domain_name):
-        ext = domain_name.split('.')[-1].lower() if '.' in domain_name else 'com'
-        return cls.WHOLESALE_COSTS.get(ext, 649.0)
+        dom = domain_name.lower().strip()
+        if dom.endswith('.co.in'):
+            return cls.WHOLESALE_COSTS.get('co.in', 349.0)
+        ext = dom.split('.')[-1] if '.' in dom else 'com'
+        return cls.WHOLESALE_COSTS.get(ext, 1199.0)
 
     @classmethod
     def register_domain(cls, domain_name, customer_data=None, nameservers=None):
