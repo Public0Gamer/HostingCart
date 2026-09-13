@@ -44,13 +44,12 @@
                             <input type="radio" name="billing_cycle" value="48m" class="hidden" {% if cycle == '48m' %}checked{% endif %} onchange="onPeriodChange('48m')">
                             <div class="flex justify-between items-center mb-1">
                                 <span class="text-xs font-black text-blue-700">48 Months</span>
-                                <span class="text-[10px] font-black bg-emerald-600 text-white px-1.5 py-0.5 rounded uppercase">Save 75%</span>
+                                <span class="text-[10px] font-black bg-emerald-600 text-white px-1.5 py-0.5 rounded uppercase">Save {{ plan.discount_percent }}%</span>
                             </div>
                             <div class="flex items-baseline gap-1 mt-1">
                                 <span class="text-xs text-slate-400 line-through font-mono">₹{{ plan.price_monthly * 2 }}</span>
-                                <span class="text-base font-black text-slate-900 font-mono">₹{{ (plan.price_48m / 48)|round|int }}/mo</span>
+                                <span class="text-lg font-black text-slate-900 font-mono">₹{{ (plan.price_48m / 48)|round|int }}<span class="text-xs font-normal text-slate-500">/mo</span></span>
                             </div>
-                            <span class="text-[10px] text-slate-500 mt-2">Total ₹{{ plan.price_48m }} for 4 years</span>
                         </label>
 
                         <!-- 12 Months -->
@@ -58,13 +57,16 @@
                             <input type="radio" name="billing_cycle" value="yearly" class="hidden" {% if cycle == 'yearly' %}checked{% endif %} onchange="onPeriodChange('yearly')">
                             <div class="flex justify-between items-center mb-1">
                                 <span class="text-xs font-black text-slate-900">12 Months</span>
+                                {% if plan.free_domain == 1 %}
                                 <span class="text-[10px] font-bold bg-orange-100 text-orange-800 px-1.5 py-0.5 rounded">Free Domain</span>
+                                {% else %}
+                                <span class="text-[10px] font-semibold text-slate-400">Annual</span>
+                                {% endif %}
                             </div>
                             <div class="flex items-baseline gap-1 mt-1">
                                 <span class="text-xs text-slate-400 line-through font-mono">₹{{ plan.price_monthly * 2 }}</span>
-                                <span class="text-base font-black text-slate-900 font-mono">₹{{ (plan.price_yearly / 12)|round|int }}/mo</span>
+                                <span class="text-lg font-black text-slate-900 font-mono">₹{{ (plan.price_yearly / 12)|round|int }}<span class="text-xs font-normal text-slate-500">/mo</span></span>
                             </div>
-                            <span class="text-[10px] text-slate-500 mt-2">Total ₹{{ plan.price_yearly }} for 1 year</span>
                         </label>
 
                         <!-- 1 Month -->
@@ -75,9 +77,8 @@
                                 <span class="text-[10px] font-semibold text-slate-400">Monthly</span>
                             </div>
                             <div class="flex items-baseline gap-1 mt-1">
-                                <span class="text-base font-black text-slate-900 font-mono">₹{{ plan.price_monthly }}/mo</span>
+                                <span class="text-lg font-black text-slate-900 font-mono">₹{{ plan.price_monthly }}<span class="text-xs font-normal text-slate-500">/mo</span></span>
                             </div>
-                            <span class="text-[10px] text-slate-500 mt-2">Billed monthly</span>
                         </label>
                     </div>
                     <div id="plan-renewal-note" class="text-[11px] text-slate-500 mt-2 font-medium"></div>
@@ -117,83 +118,127 @@
                 </div>
             </div>
 
-            <!-- CARD 2: DOMAIN REGISTRATION & CONFIGURATION -->
-            <div class="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200 shadow-sm">
+            <!-- CARD 2: HOSTINGER-STYLE LIVE DOMAIN SELECTION -->
+            <div class="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200 shadow-sm" id="domain-selection-card">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center">
                             <i data-lucide="globe" class="w-5 h-5"></i>
                         </div>
                         <div>
-                            <div class="text-base font-black text-slate-900 font-mono" id="display-domain">{{ domain }}</div>
-                            <span class="text-xs text-slate-500">Primary Domain</span>
+                            <h3 class="text-base font-black text-slate-900">Set Up Your Domain</h3>
+                            <span class="text-xs text-slate-500">Connect a new domain or your existing domain</span>
                         </div>
                     </div>
-                    <button type="button" onclick="editDomainName()" class="text-xs font-bold text-blue-600 hover:text-blue-800 transition flex items-center gap-1">
-                        <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
-                        <span>Change Domain</span>
+                    <span id="domain-status-pill" class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                        Domain: Not Selected
+                    </span>
+                </div>
+
+                <!-- Mode Selector Tabs: (A) Claim Free / Find Domain, (B) Use Existing Domain -->
+                <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-2xl mb-4">
+                    <button type="button" onclick="switchDomainMode('register')" id="tab-domain-register" class="py-2.5 px-3 text-xs font-bold rounded-xl transition bg-white text-slate-900 shadow-sm flex items-center justify-center gap-1.5">
+                        <i data-lucide="search" class="w-3.5 h-3.5 text-blue-600"></i>
+                        <span id="tab-register-label">Claim Free / Find Domain</span>
+                    </button>
+                    <button type="button" onclick="switchDomainMode('existing')" id="tab-domain-existing" class="py-2.5 px-3 text-xs font-bold rounded-xl transition text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1.5">
+                        <i data-lucide="link-2" class="w-3.5 h-3.5"></i>
+                        <span>I Already Have a Domain</span>
                     </button>
                 </div>
 
-                <!-- Editable Domain Input -->
-                <div id="domain-edit-box" class="hidden mb-4 p-3 bg-slate-50 rounded-2xl border border-slate-200">
-                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Update Target Domain</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="checkout-domain" value="{{ domain }}" class="flex-grow px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-mono font-bold text-slate-900 focus:border-blue-600 focus:outline-none">
-                        <button type="button" onclick="saveEditedDomain()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition">Save</button>
+                <!-- MODE 1: SEARCH & REGISTER NEW DOMAIN (BLANK BAR BY DEFAULT) -->
+                <div id="mode-domain-register" class="space-y-4">
+                    <!-- Dynamic Plan Eligibility Notice -->
+                    <div id="domain-eligibility-banner" class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-900 flex items-start gap-2.5">
+                        <i data-lucide="gift" class="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5"></i>
+                        <span id="domain-eligibility-text">Your plan includes 1 FREE domain for 1 year!</span>
                     </div>
-                </div>
 
-                <!-- Hostinger Alert: When Domain is NOT Free (1-month plan or Single Starter) -->
-                <div id="domain-nonfree-notice" class="hidden p-3.5 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-between text-xs text-amber-950 font-semibold mb-4">
-                    <!-- Injected dynamically via JavaScript -->
-                </div>
-
-                <!-- Free Domain Callout (Only on 12M / 48M eligible plans) -->
-                <div id="domain-free-callout" class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center gap-2.5 text-xs text-emerald-900 font-semibold mb-4">
-                    <span class="text-base">🎉</span>
-                    <span><strong>1st Year is FREE</strong> with this plan, then renews at standard registrar rates. Cancel anytime.</span>
-                </div>
-
-                <!-- Domain Option Selector: Shown only when domain is NOT free -->
-                <div id="domain-action-box" class="hidden space-y-2.5 mb-4">
-                    <span class="text-[11px] font-bold text-slate-600 block uppercase tracking-wider">Choose Domain Action</span>
-                    <label class="flex items-center justify-between p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-blue-600 cursor-pointer transition text-xs">
-                        <div class="flex items-center gap-2.5">
-                            <input type="radio" name="domain_action_choice" value="register" checked onchange="onDomainActionChange('register')" class="text-blue-600">
-                            <div>
-                                <strong class="text-slate-900 block font-bold">Register new domain via HostingCart</strong>
-                                <span class="text-slate-500 text-[11px]">Instant wholesale DNS & registrar setup</span>
-                            </div>
-                        </div>
-                        <span class="font-mono font-bold text-slate-900 text-xs" id="display-domain-fee">₹1,299.00/yr</span>
-                    </label>
-                    <label class="flex items-center justify-between p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-blue-600 cursor-pointer transition text-xs">
-                        <div class="flex items-center gap-2.5">
-                            <input type="radio" name="domain_action_choice" value="existing" onchange="onDomainActionChange('existing')" class="text-blue-600">
-                            <div>
-                                <strong class="text-slate-900 block font-bold">I already have a domain / connect later</strong>
-                                <span class="text-slate-500 text-[11px]">Point domain nameservers (ns1.hostingcart.in / ns2.hostingcart.in)</span>
-                            </div>
-                        </div>
-                        <span class="font-mono font-black text-emerald-600 text-xs">FREE</span>
-                    </label>
-                </div>
-
-                <!-- Domain Registration Pricing Line -->
-                <div id="domain-free-badge-box" class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200 mb-3">
+                    <!-- Clean Blank Search Bar -->
                     <div>
-                        <span class="text-xs font-bold text-slate-900 block">Registration Period</span>
-                        <span class="text-xs text-slate-500">1 Year Global Registrar Setup</span>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full inline-block mb-0.5">Free with Plan</span>
-                        <div class="flex items-baseline gap-1.5 justify-end">
-                            <span class="text-xs text-slate-400 line-through font-mono">₹1,499</span>
-                            <span class="text-sm font-black text-emerald-600 font-mono">₹0</span>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">Search Domain Availability</label>
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <div class="relative flex-grow">
+                                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                                <input 
+                                    type="text" 
+                                    id="domain-search-input" 
+                                    placeholder="Type your desired domain name (e.g. yourbrand.in or startup.com)" 
+                                    value="{{ domain if domain else '' }}"
+                                    class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:bg-white transition"
+                                    onkeydown="if(event.key === 'Enter'){ event.preventDefault(); checkDomainAvailabilityLive(); }"
+                                >
+                            </div>
+                            <button 
+                                type="button" 
+                                onclick="checkDomainAvailabilityLive()" 
+                                id="btn-check-domain"
+                                class="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm flex-shrink-0"
+                            >
+                                <span id="btn-check-domain-text">Check Availability</span>
+                                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                            </button>
                         </div>
+                        <span class="text-[10px] text-slate-400 mt-1 block">Live global DNS & WHOIS verification. Connects to real registry servers.</span>
+                    </div>
+
+                    <!-- Real Search Results Container -->
+                    <div id="domain-search-results" class="hidden"></div>
+
+                    <!-- Active Confirmed Domain Box -->
+                    <div id="active-domain-confirmed" class="hidden p-4 rounded-2xl bg-blue-50 border-2 border-blue-600 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold flex-shrink-0">
+                                <i data-lucide="check" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-bold text-blue-700 uppercase tracking-wider block">Selected Primary Domain</span>
+                                <strong class="text-sm font-mono font-black text-slate-900" id="confirmed-domain-name"></strong>
+                                <span class="text-[11px] block text-emerald-700 font-bold" id="confirmed-domain-price-badge"></span>
+                            </div>
+                        </div>
+                        <button type="button" onclick="clearSelectedDomain()" class="text-xs font-bold text-slate-500 hover:text-rose-600 transition px-3 py-1.5 rounded-xl border border-slate-200 bg-white shadow-sm">
+                            Change
+                        </button>
                     </div>
                 </div>
+
+                <!-- MODE 2: EXISTING DOMAIN / CONNECT LATER -->
+                <div id="mode-domain-existing" class="hidden space-y-4">
+                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600">
+                        <span class="font-bold text-slate-900 block mb-1">Already own a domain?</span>
+                        Keep your domain registered at your current provider (GoDaddy, Namecheap, etc.) and simply point nameservers to HostingCart:
+                        <div class="font-mono text-[11px] font-bold text-blue-700 mt-1.5 flex gap-3 flex-wrap">
+                            <span class="px-2 py-0.5 rounded bg-blue-100">ns1.hostingcart.in</span>
+                            <span class="px-2 py-0.5 rounded bg-blue-100">ns2.hostingcart.in</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">Enter Your Existing Domain</label>
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <input 
+                                type="text" 
+                                id="existing-domain-input" 
+                                placeholder="e.g. mycompanywebsite.com" 
+                                class="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:bg-white transition"
+                                oninput="onExistingDomainInput(this.value)"
+                            >
+                            <button 
+                                type="button" 
+                                onclick="applyExistingDomain()" 
+                                class="px-5 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition flex-shrink-0"
+                            >
+                                Connect Domain
+                            </button>
+                        </div>
+                        <span class="text-[10px] text-emerald-600 font-bold mt-1 block">✓ DNS connection is 100% FREE. Zero domain registry charges.</span>
+                    </div>
+                </div>
+
+                <input type="hidden" id="checkout-domain" value="{{ domain if domain else '' }}">
+            </div>
 
                 <!-- Optional Domain Shield Addon -->
                 <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
@@ -336,12 +381,16 @@
                     <!-- Domain Line Item -->
                     <div class="flex justify-between items-center text-slate-700">
                         <div>
-                            <strong class="text-slate-900 block font-mono font-bold" id="summary-domain-name">{{ domain }}</strong>
-                            <span class="text-slate-500" id="summary-domain-label">Domain Registration (1st Year)</span>
+                            <strong class="text-slate-900 block font-mono font-bold" id="summary-domain-name">{% if domain %}{{ domain }}{% else %}Domain: None Selected{% endif %}</strong>
+                            <span class="text-slate-500" id="summary-domain-label">{% if domain %}Domain Registration (1st Year){% else %}Search or connect domain below{% endif %}</span>
                         </div>
                         <div class="text-right" id="summary-domain-price">
+                            {% if domain %}
                             <span class="text-slate-400 line-through font-mono text-[11px] block">₹1,299.00</span>
                             <span class="font-mono font-black text-emerald-600 uppercase text-[11px]">Free</span>
+                            {% else %}
+                            <span class="font-mono font-bold text-slate-400 text-xs">₹0.00</span>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -551,9 +600,13 @@
     let currentRazorpayDetails = null;
     let pollInterval = null;
     let timerCountdown = null;
-    let domainAction = "register"; // 'register' or 'existing'
 
-    function isDomainFreeWithCurrentSelection() {
+    // Domain state: empty by default unless passed in URL
+    let selectedDomain = ("{{ domain if domain else '' }}").trim().toLowerCase();
+    let domainMode = "register"; // 'register' or 'existing'
+    let domainAction = selectedDomain ? "register" : "register";
+
+    function isDomainFreeForTarget(dom) {
         if (planData.free_domain !== 1 || (activeCycle !== 'yearly' && activeCycle !== '48m')) {
             return false;
         }
@@ -562,27 +615,85 @@
         if (planSlug === 'unlimited' || planSlug === 'cloud-startup') {
             return true;
         }
-        // Plus Growth: .in, .co.in, .online, .xyz, .site are free
-        const d = (document.getElementById('checkout-domain') ? document.getElementById('checkout-domain').value : '').trim().toLowerCase();
+        // Plus Growth: .in, .co.in, .online, .xyz, .site, .store are free
+        const d = (dom || selectedDomain || '').trim().toLowerCase();
         if (d.endsWith('.in') || d.endsWith('.co.in') || d.endsWith('.online') || d.endsWith('.xyz') || d.endsWith('.site') || d.endsWith('.store')) {
             return true;
         }
         return false;
     }
 
+    function isDomainFreeWithCurrentSelection() {
+        return isDomainFreeForTarget(selectedDomain);
+    }
+
     function getDomainRegistrationFee(dom) {
-        const d = (dom || (document.getElementById('checkout-domain') ? document.getElementById('checkout-domain').value : '') || '').trim().toLowerCase();
+        const d = (dom || selectedDomain || '').trim().toLowerCase();
         if (d.endsWith('.co.in')) return 499.0;
         if (d.endsWith('.in')) return 599.0;
         if (d.endsWith('.net') || d.endsWith('.org')) return 1349.0;
         if (d.endsWith('.xyz')) return 299.0;
-        if (d.endsWith('.online') || d.endsWith('.site')) return 199.0;
+        if (d.endsWith('.online') || d.endsWith('.site') || d.endsWith('.store')) return 199.0;
         return 1299.0;
     }
 
-    function onDomainActionChange(action) {
-        domainAction = action;
-        recalcTotals();
+    function updateDomainInclusionBanner() {
+        const banner = document.getElementById('domain-eligibility-banner');
+        const bannerText = document.getElementById('domain-eligibility-text');
+        const regTabLabel = document.getElementById('tab-register-label');
+        const inclusionLine = document.getElementById('inclusion-domain-line');
+        const upsellBanner = document.getElementById('switch-deal-banner');
+
+        const isEligible = (planData.free_domain === 1 && (activeCycle === 'yearly' || activeCycle === '48m'));
+
+        if (isEligible) {
+            if (upsellBanner) upsellBanner.classList.add('hidden');
+            if (regTabLabel) regTabLabel.innerText = "Claim Free Domain";
+            if (banner) {
+                banner.className = "p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-900 flex items-start gap-2.5";
+            }
+            if (bannerText) {
+                if (planData.slug === 'premium') {
+                    bannerText.innerHTML = `<span>🎉 <strong>1st Year FREE Domain</strong> included in your plan! (.in, .co.in, .online, .xyz, .site, .store)</span>`;
+                } else {
+                    bannerText.innerHTML = `<span>🎉 <strong>1st Year FREE Domain</strong> included in your plan! (All extensions including .com, .in, .org, .net)</span>`;
+                }
+            }
+            if (inclusionLine) {
+                inclusionLine.innerHTML = `
+                    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                    <span>Domain name is <strong class="text-emerald-700">100% FREE for 1 Year</strong> with this plan.</span>
+                `;
+            }
+        } else {
+            if (regTabLabel) regTabLabel.innerText = "Find a Domain";
+            if (banner) {
+                banner.className = "p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs font-semibold text-amber-950 flex items-start gap-2.5";
+            }
+            if (bannerText) {
+                if (activeCycle === 'monthly' && planData.free_domain === 1) {
+                    bannerText.innerHTML = `<span>💡 Want a free domain? Switch to a <strong>12 or 48-month plan</strong> to get 1 year domain registration for FREE!</span>`;
+                    if (upsellBanner) upsellBanner.classList.remove('hidden');
+                } else {
+                    bannerText.innerHTML = `<span>💡 Single Starter includes high-speed hosting. Register any domain below at direct wholesale rates.</span>`;
+                    if (upsellBanner) upsellBanner.classList.add('hidden');
+                }
+            }
+            if (inclusionLine) {
+                if (activeCycle === 'monthly') {
+                    inclusionLine.innerHTML = `
+                        <span class="w-4 h-4 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-black text-[10px] flex-shrink-0">!</span>
+                        <span class="text-amber-950 font-bold">Want a free domain? Switch to a 12M or 48M plan.</span>
+                    `;
+                } else {
+                    inclusionLine.innerHTML = `
+                        <span class="w-4 h-4 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-[10px] flex-shrink-0">✕</span>
+                        <span class="text-slate-500">Free domain not included in Single Starter.</span>
+                    `;
+                }
+            }
+        }
+        if (window.lucide) lucide.createIcons();
     }
 
     function onPeriodChange(cycle) {
@@ -606,82 +717,276 @@
         const noteEl = document.getElementById('plan-renewal-note');
         if (noteEl) noteEl.innerText = renewalNotes[cycle] || '';
 
-        // Dynamic Hostinger-style Free Domain UI Rules
-        const isEligiblePlan = (planData.free_domain === 1);
-        const isFreeDomain = isDomainFreeWithCurrentSelection();
-        const upsellBanner = document.getElementById('switch-deal-banner');
-        const inclusionLine = document.getElementById('inclusion-domain-line');
-        const domainNonfreeNotice = document.getElementById('domain-nonfree-notice');
-        const domainFreeBadgeBox = document.getElementById('domain-free-badge-box');
-        const domainFreeCallout = document.getElementById('domain-free-callout');
-        const domainActionBox = document.getElementById('domain-action-box');
-        const displayFeeEl = document.getElementById('display-domain-fee');
+        updateDomainInclusionBanner();
 
-        const targetDom = (document.getElementById('checkout-domain') ? document.getElementById('checkout-domain').value : '').trim().toLowerCase();
-        const fee = getDomainRegistrationFee(targetDom);
-        if (displayFeeEl) displayFeeEl.innerText = `₹${fee.toFixed(2)}/yr`;
-
-        if (isFreeDomain) {
-            if (upsellBanner) upsellBanner.classList.add('hidden');
-            if (inclusionLine) {
-                inclusionLine.innerHTML = `
-                    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
-                    <span>Domain name is <strong class="text-emerald-700">100% FREE for 1 Year</strong> with this plan.</span>
-                `;
+        // If a domain was already selected, update its price badge
+        if (selectedDomain && domainAction === 'register') {
+            const isFree = isDomainFreeForTarget(selectedDomain);
+            const fee = getDomainRegistrationFee(selectedDomain);
+            const confirmedBadge = document.getElementById('confirmed-domain-price-badge');
+            if (confirmedBadge) {
+                confirmedBadge.innerText = isFree ? '✓ 1st Year 100% FREE (Included in your plan)' : `✓ Registered at ₹${fee.toFixed(2)}/yr`;
             }
-            if (domainNonfreeNotice) domainNonfreeNotice.classList.add('hidden');
-            if (domainFreeBadgeBox) domainFreeBadgeBox.classList.remove('hidden');
-            if (domainFreeCallout) domainFreeCallout.classList.remove('hidden');
-            if (domainActionBox) domainActionBox.classList.add('hidden');
-        } else {
-            if (isEligiblePlan && cycle === 'monthly') {
-                if (upsellBanner) upsellBanner.classList.remove('hidden');
-                if (inclusionLine) {
-                    inclusionLine.innerHTML = `
-                        <span class="w-4 h-4 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-black text-[10px] flex-shrink-0">!</span>
-                        <span class="text-amber-950 font-bold">Want a free domain? Choose a 12-month or 48-month plan.</span>
-                    `;
-                }
-                if (domainNonfreeNotice) {
-                    domainNonfreeNotice.classList.remove('hidden');
-                    domainNonfreeNotice.innerHTML = `
-                        <div class="flex items-center gap-2">
-                            <span class="w-5 h-5 rounded-full bg-amber-200 text-amber-900 flex items-center justify-center font-bold text-xs flex-shrink-0">!</span>
-                            <span>Want a free domain? Choose a 12-month or 48-month plan.</span>
-                        </div>
-                        <button type="button" onclick="onPeriodChange('yearly')" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-[11px] font-bold transition flex-shrink-0">
-                            Upgrade to 12M &rarr;
-                        </button>
-                    `;
-                }
-            } else {
-                // Single Starter plan
-                if (upsellBanner) upsellBanner.classList.add('hidden');
-                if (inclusionLine) {
-                    inclusionLine.innerHTML = `
-                        <span class="w-4 h-4 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-[10px] flex-shrink-0">✕</span>
-                        <span class="text-slate-500">Free domain not included in Single Starter.</span>
-                    `;
-                }
-                if (domainNonfreeNotice) {
-                    domainNonfreeNotice.classList.remove('hidden');
-                    domainNonfreeNotice.innerHTML = `
-                        <div class="flex items-center gap-2">
-                            <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs flex-shrink-0">✕</span>
-                            <span>Free domain not included in Single Starter. Choose Plus Growth or higher for free domain.</span>
-                        </div>
-                        <a href="/checkout?plan=premium&cycle=yearly" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[11px] font-bold transition flex-shrink-0">
-                            Upgrade Plan &rarr;
-                        </a>
-                    `;
-                }
-            }
-            if (domainFreeBadgeBox) domainFreeBadgeBox.classList.add('hidden');
-            if (domainFreeCallout) domainFreeCallout.classList.add('hidden');
-            if (domainActionBox) domainActionBox.classList.remove('hidden');
         }
 
+        recalcTotals();
         if (window.lucide) lucide.createIcons();
+    }
+
+    function switchDomainMode(mode) {
+        domainMode = mode;
+        const regTab = document.getElementById('tab-domain-register');
+        const existTab = document.getElementById('tab-domain-existing');
+        const regSection = document.getElementById('mode-domain-register');
+        const existSection = document.getElementById('mode-domain-existing');
+
+        if (mode === 'register') {
+            if (regTab) regTab.className = 'py-2.5 px-3 text-xs font-bold rounded-xl transition bg-white text-slate-900 shadow-sm flex items-center justify-center gap-1.5';
+            if (existTab) existTab.className = 'py-2.5 px-3 text-xs font-bold rounded-xl transition text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1.5';
+            if (regSection) regSection.classList.remove('hidden');
+            if (existSection) existSection.classList.add('hidden');
+            domainAction = 'register';
+        } else {
+            if (regTab) regTab.className = 'py-2.5 px-3 text-xs font-bold rounded-xl transition text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1.5';
+            if (existTab) existTab.className = 'py-2.5 px-3 text-xs font-bold rounded-xl transition bg-white text-slate-900 shadow-sm flex items-center justify-center gap-1.5';
+            if (regSection) regSection.classList.add('hidden');
+            if (existSection) existSection.classList.remove('hidden');
+            domainAction = 'existing';
+            const existInput = document.getElementById('existing-domain-input');
+            if (existInput && existInput.value.trim()) {
+                selectedDomain = existInput.value.trim().toLowerCase();
+            }
+        }
+        recalcTotals();
+        if (window.lucide) lucide.createIcons();
+    }
+
+    async function checkDomainAvailabilityLive() {
+        const input = document.getElementById('domain-search-input');
+        const query = (input ? input.value : '').trim().toLowerCase();
+        if (!query) {
+            alert('Please enter a domain name to check availability.');
+            if (input) input.focus();
+            return;
+        }
+
+        const btnText = document.getElementById('btn-check-domain-text');
+        const btn = document.getElementById('btn-check-domain');
+        if (btnText) btnText.innerText = 'Checking...';
+        if (btn) btn.disabled = true;
+
+        const resultsContainer = document.getElementById('domain-search-results');
+        if (resultsContainer) {
+            resultsContainer.classList.remove('hidden');
+            resultsContainer.innerHTML = `
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center gap-2 text-xs text-slate-600 font-semibold">
+                    <svg class="animate-spin h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                    <span>Checking live registry servers for <strong>${query}</strong>...</span>
+                </div>
+            `;
+        }
+
+        try {
+            const res = await fetch(`/api/domain-search?domain=${encodeURIComponent(query)}`);
+            const data = await res.json();
+
+            if (btnText) btnText.innerText = 'Check Availability';
+            if (btn) btn.disabled = false;
+
+            if (data.success && data.primary) {
+                const primary = data.primary;
+                const isAvail = primary.available;
+                const isFree = isDomainFreeForTarget(primary.domain);
+                const fee = getDomainRegistrationFee(primary.domain);
+
+                if (isAvail) {
+                    // Available Card (Khali hai!)
+                    let html = `
+                        <div class="p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-500 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-base flex-shrink-0">
+                                    ✓
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <strong class="font-mono text-base font-black text-slate-900">${primary.domain}</strong>
+                                        <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900">Available</span>
+                                    </div>
+                                    <span class="text-xs ${isFree ? 'text-emerald-700 font-bold' : 'text-slate-600 font-semibold'} block mt-0.5">
+                                        ${isFree ? '🎉 100% FREE for 1st Year (Included in your plan!)' : `₹${fee.toFixed(2)} / 1st Year`}
+                                    </span>
+                                </div>
+                            </div>
+                            <button 
+                                type="button" 
+                                onclick="selectSearchedDomain('${primary.domain}', ${isFree}, ${fee})" 
+                                class="px-5 py-2.5 ${isFree ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'} text-xs font-black rounded-xl transition shadow-sm flex-shrink-0"
+                            >
+                                ${isFree ? 'Claim Free Domain &rarr;' : `Add to Order (₹${fee.toFixed(0)}) &rarr;`}
+                            </button>
+                        </div>
+                    `;
+                    resultsContainer.innerHTML = html;
+                } else {
+                    // Taken Card (Already registered)
+                    let html = `
+                        <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 flex flex-col gap-3">
+                            <div class="flex items-start gap-3">
+                                <div class="w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center font-bold text-base flex-shrink-0 mt-0.5">
+                                    ✕
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <strong class="font-mono text-sm font-black text-slate-900">${primary.domain}</strong>
+                                        <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-rose-200 text-rose-900">Unavailable / Taken</span>
+                                    </div>
+                                    <span class="text-xs text-rose-800 block mt-0.5">This domain is already registered by someone else. You can choose one of the available extensions below:</span>
+                                </div>
+                            </div>
+                    `;
+
+                    // Filter available alternatives from results
+                    const availAlts = (data.results || []).filter(r => r.available && r.domain !== primary.domain);
+                    if (availAlts.length > 0) {
+                        html += `<div class="space-y-2 pt-2 border-t border-rose-100">`;
+                        availAlts.slice(0, 3).forEach(alt => {
+                            const altFree = isDomainFreeForTarget(alt.domain);
+                            const altFee = getDomainRegistrationFee(alt.domain);
+                            html += `
+                                <div class="p-3 rounded-xl bg-white border border-slate-200 flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                        <strong class="font-mono text-xs font-bold text-slate-900">${alt.domain}</strong>
+                                        <span class="text-[10px] font-bold ${altFree ? 'text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded' : 'text-slate-500'}">
+                                            ${altFree ? 'FREE with plan' : `₹${altFee.toFixed(0)}/yr`}
+                                        </span>
+                                    </div>
+                                    <button 
+                                        type="button" 
+                                        onclick="selectSearchedDomain('${alt.domain}', ${altFree}, ${altFee})"
+                                        class="px-3 py-1.5 ${altFree ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded-lg text-[11px] font-bold transition"
+                                    >
+                                        ${altFree ? 'Claim Free' : `Select`}
+                                    </button>
+                                </div>
+                            `;
+                        });
+                        html += `</div>`;
+                    }
+                    html += `</div>`;
+                    resultsContainer.innerHTML = html;
+                }
+            } else {
+                resultsContainer.innerHTML = `<div class="p-3 text-xs text-rose-600 bg-rose-50 rounded-xl">Error checking domain availability. Please try again.</div>`;
+            }
+        } catch (e) {
+            console.error(e);
+            if (btnText) btnText.innerText = 'Check Availability';
+            if (btn) btn.disabled = false;
+            if (resultsContainer) {
+                resultsContainer.innerHTML = `<div class="p-3 text-xs text-rose-600 bg-rose-50 rounded-xl">Server error checking domain. Please try again.</div>`;
+            }
+        }
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function selectSearchedDomain(domainName, isFree, fee) {
+        selectedDomain = domainName.trim().toLowerCase();
+        domainAction = "register";
+
+        const checkoutDomInput = document.getElementById('checkout-domain');
+        if (checkoutDomInput) checkoutDomInput.value = selectedDomain;
+
+        const resultsContainer = document.getElementById('domain-search-results');
+        if (resultsContainer) resultsContainer.classList.add('hidden');
+
+        const confirmedBox = document.getElementById('active-domain-confirmed');
+        const confirmedName = document.getElementById('confirmed-domain-name');
+        const confirmedBadge = document.getElementById('confirmed-domain-price-badge');
+        if (confirmedBox) confirmedBox.classList.remove('hidden');
+        if (confirmedName) confirmedName.innerText = selectedDomain;
+        if (confirmedBadge) {
+            confirmedBadge.innerText = isFree ? '✓ 1st Year 100% FREE (Included in your plan)' : `✓ Registered at ₹${fee.toFixed(2)}/yr`;
+        }
+
+        const statusPill = document.getElementById('domain-status-pill');
+        if (statusPill) {
+            statusPill.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200';
+            statusPill.innerText = `Domain: ${selectedDomain}`;
+        }
+
+        recalcTotals();
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function clearSelectedDomain() {
+        selectedDomain = "";
+        const checkoutDomInput = document.getElementById('checkout-domain');
+        if (checkoutDomInput) checkoutDomInput.value = "";
+
+        const confirmedBox = document.getElementById('active-domain-confirmed');
+        if (confirmedBox) confirmedBox.classList.add('hidden');
+
+        const searchInput = document.getElementById('domain-search-input');
+        if (searchInput) {
+            searchInput.value = "";
+            searchInput.focus();
+        }
+
+        const resultsContainer = document.getElementById('domain-search-results');
+        if (resultsContainer) resultsContainer.classList.add('hidden');
+
+        const statusPill = document.getElementById('domain-status-pill');
+        if (statusPill) {
+            statusPill.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200';
+            statusPill.innerText = 'Domain: Not Selected';
+        }
+
+        recalcTotals();
+    }
+
+    function onExistingDomainInput(val) {
+        if (domainMode === 'existing') {
+            selectedDomain = val.trim().toLowerCase();
+            const checkoutDomInput = document.getElementById('checkout-domain');
+            if (checkoutDomInput) checkoutDomInput.value = selectedDomain;
+
+            const statusPill = document.getElementById('domain-status-pill');
+            if (statusPill) {
+                if (selectedDomain) {
+                    statusPill.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-blue-50 text-blue-800 border border-blue-200';
+                    statusPill.innerText = `Existing: ${selectedDomain}`;
+                } else {
+                    statusPill.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200';
+                    statusPill.innerText = 'Domain: Not Selected';
+                }
+            }
+            recalcTotals();
+        }
+    }
+
+    function applyExistingDomain() {
+        const existInput = document.getElementById('existing-domain-input');
+        const val = existInput ? existInput.value.trim().toLowerCase() : '';
+        if (!val) {
+            alert('Please enter your existing domain name (e.g. mybrand.com).');
+            if (existInput) existInput.focus();
+            return;
+        }
+        selectedDomain = val;
+        domainAction = 'existing';
+        const checkoutDomInput = document.getElementById('checkout-domain');
+        if (checkoutDomInput) checkoutDomInput.value = selectedDomain;
+
+        const statusPill = document.getElementById('domain-status-pill');
+        if (statusPill) {
+            statusPill.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-blue-50 text-blue-800 border border-blue-200';
+            statusPill.innerText = `Existing: ${selectedDomain}`;
+        }
+        alert(`Domain '${selectedDomain}' attached. Point your nameservers to ns1.hostingcart.in and ns2.hostingcart.in.`);
         recalcTotals();
     }
 
@@ -707,21 +1012,6 @@
             else row.classList.add('hidden');
         }
         recalcTotals();
-    }
-
-    function editDomainName() {
-        const box = document.getElementById('domain-edit-box');
-        if (box) box.classList.toggle('hidden');
-    }
-
-    function saveEditedDomain() {
-        const val = document.getElementById('checkout-domain').value.trim();
-        if (val) {
-            document.getElementById('display-domain').innerText = val;
-            document.getElementById('summary-domain-name').innerText = val;
-            document.getElementById('domain-edit-box').classList.add('hidden');
-            onPeriodChange(activeCycle); // update fee display
-        }
     }
 
     async function applyPromoCoupon(showAlert = true) {
@@ -782,8 +1072,10 @@
         const titleEl = document.getElementById('summary-period-title');
         if (titleEl) titleEl.innerText = periodTitles[activeCycle];
 
-        document.getElementById('summary-subtotal').innerText = `₹${subtotal.toLocaleString('en-IN')}`;
-        document.getElementById('summary-regular-plan').innerText = `₹${(subtotal * 3).toLocaleString('en-IN')}`;
+        const summarySubtotal = document.getElementById('summary-subtotal');
+        if (summarySubtotal) summarySubtotal.innerText = `₹${subtotal.toLocaleString('en-IN')}`;
+        const summaryRegular = document.getElementById('summary-regular-plan');
+        if (summaryRegular) summaryRegular.innerText = `₹${(subtotal * 2.8).toLocaleString('en-IN', {maximumFractionDigits: 0})}`;
 
         let shieldCost = domainShieldEnabled ? 249.0 : 0.0;
         let discount = 0.0;
@@ -803,28 +1095,32 @@
         }
 
         // Domain calculation
-        const isFreeDomain = isDomainFreeWithCurrentSelection();
-        const targetDomain = ((document.getElementById('checkout-domain') ? document.getElementById('checkout-domain').value : '') || 'mysite.com').trim().toLowerCase();
-        const regularDomainRate = getDomainRegistrationFee(targetDomain);
         let domainFee = 0.0;
-
         const domNameEl = document.getElementById('summary-domain-name');
         const domLabelEl = document.getElementById('summary-domain-label');
         const domPriceEl = document.getElementById('summary-domain-price');
 
-        if (domNameEl) domNameEl.innerText = targetDomain;
-
-        if (isFreeDomain) {
-            if (domLabelEl) domLabelEl.innerText = "Domain Registration (1st Year)";
-            if (domPriceEl) domPriceEl.innerHTML = `<span class="text-slate-400 line-through font-mono text-[11px] block">₹${regularDomainRate.toFixed(2)}</span><span class="font-mono font-black text-emerald-600 uppercase text-[11px]">Free</span>`;
+        if (!selectedDomain) {
+            if (domNameEl) domNameEl.innerText = "Domain: None Selected";
+            if (domLabelEl) domLabelEl.innerText = "Search or connect domain below";
+            if (domPriceEl) domPriceEl.innerHTML = `<span class="font-mono font-bold text-slate-400 text-xs">₹0.00</span>`;
+            domainFee = 0.0;
+        } else if (domainAction === 'existing') {
+            if (domNameEl) domNameEl.innerText = selectedDomain;
+            if (domLabelEl) domLabelEl.innerText = "Existing Domain (DNS Connection)";
+            if (domPriceEl) domPriceEl.innerHTML = `<span class="font-mono font-black text-emerald-600 uppercase text-[11px]">Free</span>`;
             domainFee = 0.0;
         } else {
-            if (domainAction === 'existing') {
-                if (domLabelEl) domLabelEl.innerText = "Existing Domain (DNS Setup)";
-                if (domPriceEl) domPriceEl.innerHTML = `<span class="font-mono font-black text-emerald-600 uppercase text-[11px]">Free</span>`;
+            // Register action
+            const isFree = isDomainFreeForTarget(selectedDomain);
+            const regularRate = getDomainRegistrationFee(selectedDomain);
+            if (domNameEl) domNameEl.innerText = selectedDomain;
+            if (isFree) {
+                if (domLabelEl) domLabelEl.innerText = "Domain Registration (1st Year)";
+                if (domPriceEl) domPriceEl.innerHTML = `<span class="text-slate-400 line-through font-mono text-[11px] block">₹${regularRate.toFixed(2)}</span><span class="font-mono font-black text-emerald-600 uppercase text-[11px]">Free</span>`;
                 domainFee = 0.0;
             } else {
-                domainFee = regularDomainRate;
+                domainFee = regularRate;
                 if (domLabelEl) domLabelEl.innerText = "Domain Registration (1 Year)";
                 if (domPriceEl) domPriceEl.innerHTML = `<span class="font-mono font-bold text-slate-900 text-xs">₹${domainFee.toFixed(2)}</span>`;
             }
@@ -856,11 +1152,23 @@
         btn.disabled = true;
         btn.innerText = 'Creating Order...';
 
-        const domain = document.getElementById('checkout-domain').value.trim();
-        const isFree = isDomainFreeWithCurrentSelection();
+        const domain = selectedDomain || (document.getElementById('checkout-domain') ? document.getElementById('checkout-domain').value.trim() : '');
+        if (!domain) {
+            alert('Please search and claim your domain, or enter an existing domain to connect with your hosting.');
+            btn.disabled = false;
+            btn.innerText = 'Continue to Payment';
+            const input = document.getElementById('domain-search-input');
+            if (input) {
+                input.focus();
+                input.scrollIntoView({behavior: 'smooth', block: 'center'});
+            }
+            return;
+        }
+
+        const isFree = (domainAction === 'register') && isDomainFreeForTarget(domain);
         const payload = {
             plan_id: planData.id,
-            domain_name: domain || 'hostingcart.com',
+            domain_name: domain,
             billing_cycle: activeCycle,
             domain_action: isFree ? 'register' : domainAction,
             is_domain_free: isFree ? 1 : 0,

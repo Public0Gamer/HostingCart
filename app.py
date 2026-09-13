@@ -513,8 +513,8 @@ def submit_review():
 @app.route('/checkout')
 def checkout():
     plan_slug = request.args.get('plan', 'premium')
-    domain = request.args.get('domain', 'mysite.com')
-    cycle = request.args.get('cycle', 'yearly') # 'monthly', 'yearly', '48m'
+    domain = request.args.get('domain', '').strip()
+    cycle = request.args.get('cycle', '48m') # 'monthly', 'yearly', '48m'
 
     slug_alias = {
         'starter-single': 'single',
