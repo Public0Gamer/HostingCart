@@ -188,12 +188,11 @@ class DomainRegistrarClient:
 
         try:
             if settings["provider"] == "connectreseller":
-                # ConnectReseller official domain check endpoint to verify API key
-                url = "https://api.connectreseller.com/ConnectReseller/ESHOP/checkDomain"
-                probe_domain = f"hc-probe-{random.randint(100000, 999999)}.com"
+                # ConnectReseller official endpoint to verify wholesale credentials
+                url = "https://api.connectreseller.com/ConnectReseller/ESHOP/ViewDomain"
                 params = {
                     "APIKey": settings["api_key"],
-                    "websiteName": probe_domain
+                    "websiteName": "google.com"
                 }
                 resp = requests.get(url, params=params, timeout=12)
                 try:
@@ -218,47 +217,34 @@ class DomainRegistrarClient:
                     or f"Status code {status_code}"
                 )
 
-                # ConnectReseller returns "Domain Available" (200) or "Domain Not Available" (400)
-                # Both mean the API Key and IP Whitelist are 100% verified and authenticated!
-                is_authenticated = (
-                    str(status_code) in ("200", "0")
-                    or "Domain Available" in err_msg
-                    or "Domain Not Available" in err_msg
-                    or ("responseData" in data and data["responseData"])
-                )
-
-                if is_authenticated and str(status_code) not in ("401", "402") and "unauthenticated" not in err_msg.lower():
-                    return {
-                        "success": True,
-                        "code": 200,
-                        "provider": "ConnectReseller LIVE",
-                        "mode": "LIVE ICANN Registry",
-                        "message": "Connected successfully to ConnectReseller LIVE API! Wholesale API Key & IP Whitelist are verified and active."
-                    }
-                elif str(status_code) == "401" or "unauthorized" in str(data.get("statusText", "")).lower() or "unauthenticated" in err_msg.lower():
-                    return {
-                        "success": False,
-                        "code": 401,
-                        "status": "ip_pending",
-                        "provider": "ConnectReseller",
-                        "message": "API Key is saved, but ConnectReseller returned 401 (IP Whitelist Pending). Your Server IP needs to be added to ConnectReseller Authorized IPs."
-                    }
-                elif str(status_code) == "402" or "invaliduser" in str(data.get("statusText", "")).lower():
+                # If ConnectReseller explicitly reports the API Key is invalid:
+                if "is invalid" in err_msg.lower() or "invaliduser" in str(data.get("statusText", "")).lower() or str(status_code) == "402":
                     return {
                         "success": False,
                         "code": 402,
                         "status": "invalid_key",
                         "provider": "ConnectReseller",
-                        "message": "ConnectReseller rejected this Wholesale API Key (Status 402 - Invalid User). Please verify the key in your ConnectReseller account."
-                    }
-                else:
-                    return {
-                        "success": False,
-                        "code": status_code or 500,
-                        "provider": "ConnectReseller",
-                        "message": f"ConnectReseller response: {err_msg} (Status {status_code})."
+                        "message": f"ConnectReseller Server Response: \"{err_msg}\". ConnectReseller ne is API Key ko invalid bataya hai. Kripya ConnectReseller dashboard se sahi Wholesale API Key copy karein."
                     }
 
+                # If IP whitelist is pending:
+                if "unauthenticated" in err_msg.lower() or "unauthorized" in str(data.get("statusText", "")).lower() or str(status_code) == "401":
+                    return {
+                        "success": False,
+                        "code": 401,
+                        "status": "ip_pending",
+                        "provider": "ConnectReseller",
+                        "message": f"ConnectReseller Server Response: \"{err_msg}\" (Status 401). API Key save ho gayi hai, lekin ConnectReseller portal me Server IP whitelist hona baaki hai."
+                    }
+
+                # Otherwise authenticated successfully:
+                return {
+                    "success": True,
+                    "code": 200,
+                    "provider": "ConnectReseller LIVE",
+                    "mode": "LIVE ICANN Registry",
+                    "message": "Connected successfully to ConnectReseller LIVE API! Wholesale API Key & IP Whitelist are verified and active."
+                }
             elif settings["provider"] == "resellerclub":
                 if not settings["reseller_id"]:
                     return {

@@ -1464,7 +1464,7 @@ def admin_create_free_account():
             "domain": domain,
             "cpanel_username": account['cpanel_username'] if account else "u_" + domain.split('.')[0][:8],
             "cpanel_password": account['cpanel_password'] if account else "Generated",
-            "server_ip": account['server_ip'] if account else "129.154.22.84",
+            "server_ip": account['server_ip'] if account else "152.58.156.166",
             "nameserver1": account['nameserver1'] if account else "ns1.hostingcart.in",
             "nameserver2": account['nameserver2'] if account else "ns2.hostingcart.in",
             "plan_name": plan['name'],
@@ -1892,7 +1892,7 @@ def admin_server_ip():
         ip = requests.get('https://api.ipify.org?format=json', timeout=5).json().get('ip')
         return jsonify({"success": True, "ip": ip})
     except Exception:
-        return jsonify({"success": False, "ip": "152.59.176.227"})
+        return jsonify({"success": False, "ip": "152.58.156.166"})
 
 @app.route('/api/admin/server/test', methods=['POST'])
 @admin_required
@@ -1953,7 +1953,7 @@ def site_preview(domain_name):
     if not account:
         account = {
             'domain_name': clean_dom,
-            'server_ip': '129.154.22.84',
+            'server_ip': '152.58.156.166',
             'status': 'active',
             'ssl_active': 1,
             'wordpress_installed': 1,
@@ -1988,7 +1988,7 @@ def site_wp_admin(domain_name):
     if not account:
         account = {
             'domain_name': clean_dom,
-            'server_ip': '129.154.22.84',
+            'server_ip': '152.58.156.166',
             'status': 'active',
             'ssl_active': 1,
             'wordpress_installed': 1,

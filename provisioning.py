@@ -29,7 +29,7 @@ class MockServerAdapter:
         return {
             "success": True,
             "message": f"Hosting account for {domain} provisioned instantly.",
-            "server_ip": "129.154.22.84",
+            "server_ip": "152.58.156.166",
             "nameservers": ["ns1.hostingcart.in", "ns2.hostingcart.in"],
             "control_panel_url": "https://panel.hostingcart.in:8083",
             "ftp_host": "ftp.hostingcart.in"
@@ -250,9 +250,9 @@ def auto_provision_order(order_id):
 
     # Create default DNS Zone records
     default_dns = [
-        (account_id, 'A', '@', '129.154.22.84', 14400),
-        (account_id, 'A', 'www', '129.154.22.84', 14400),
-        (account_id, 'A', 'mail', '129.154.22.84', 14400),
+        (account_id, 'A', '@', '152.58.156.166', 14400),
+        (account_id, 'A', 'www', '152.58.156.166', 14400),
+        (account_id, 'A', 'mail', '152.58.156.166', 14400),
         (account_id, 'CNAME', 'ftp', '@', 14400),
         (account_id, 'MX', '@', 'mail.' + order['domain_name'], 14400),
         (account_id, 'TXT', '@', 'v=spf1 a mx ~all', 14400)

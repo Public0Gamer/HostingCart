@@ -103,7 +103,7 @@ def init_db():
         order_id INTEGER NOT NULL,
         plan_id INTEGER NOT NULL,
         domain_name TEXT NOT NULL,
-        server_ip TEXT DEFAULT '129.154.22.84',
+        server_ip TEXT DEFAULT '152.58.156.166',
         nameserver1 TEXT DEFAULT 'ns1.hostingcart.in',
         nameserver2 TEXT DEFAULT 'ns2.hostingcart.in',
         cpanel_username TEXT UNIQUE NOT NULL,
@@ -297,7 +297,7 @@ def seed_starter_data(cursor):
         ('whatsapp_number', '+91 9555838550'),
         ('default_nameserver1', 'ns1.hostingcart.in'),
         ('default_nameserver2', 'ns2.hostingcart.in'),
-        ('server_public_ip', '129.154.22.84'),
+        ('server_public_ip', '152.58.156.166'),
         ('razorpay_key_id', 'rzp_test_HostingCart'),
         ('razorpay_key_secret', 'test_secret_hw_key'),
         ('upi_id', 'pawan8550@naviaxis')
