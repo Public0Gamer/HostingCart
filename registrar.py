@@ -30,9 +30,9 @@ class DomainRegistrarClient:
         conn.close()
         return {
             "provider": settings.get("registrar_provider", "connectreseller"),
-            "api_key": settings.get("registrar_api_key", "SANDBOX_DEMO_KEY"),
-            "reseller_id": settings.get("registrar_reseller_id", "100293"),
-            "sandbox": settings.get("registrar_sandbox", "1") == "1",
+            "api_key": settings.get("registrar_api_key", ""),
+            "reseller_id": settings.get("registrar_reseller_id", ""),
+            "sandbox": settings.get("registrar_sandbox", "0") == "1",
             "auto_register": settings.get("registrar_auto_register", "1") == "1"
         }
 
@@ -162,14 +162,11 @@ class DomainRegistrarClient:
     def test_connection(cls):
         """Tests connection to registrar and returns wallet balance"""
         settings = cls.get_settings()
-        if settings["sandbox"] or settings["api_key"] == "SANDBOX_DEMO_KEY":
+        if not settings["api_key"] or not settings["reseller_id"]:
             return {
-                "success": True,
-                "provider": f"{settings['provider'].title()} (Sandbox Mode)",
-                "balance": 10000.0,
-                "currency": "INR",
-                "mode": "Sandbox (Virtual Demo Funds Rs. 10,000.00)",
-                "message": "Sandbox connection verified! Zero real money will be spent during tests."
+                "success": False,
+                "provider": settings['provider'],
+                "message": "Please enter your Reseller ID and Wholesale API Key first, then click Test Connection."
             }
 
         try:

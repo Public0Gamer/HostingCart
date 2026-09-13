@@ -687,13 +687,13 @@
                         </div>
                         <div>
                             <label class="block font-bold text-slate-700 mb-1">Reseller ID</label>
-                            <input type="text" id="setting-reg-reseller-id" value="{{ settings.registrar_reseller_id or '100293' }}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono" placeholder="e.g. 100293">
+                            <input type="text" id="setting-reg-reseller-id" value="{{ settings.registrar_reseller_id or '' }}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono" placeholder="Enter your ConnectReseller Reseller ID">
                         </div>
                     </div>
 
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Wholesale API Key</label>
-                        <input type="password" id="setting-reg-api-key" value="{{ settings.registrar_api_key or 'SANDBOX_DEMO_KEY' }}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono" placeholder="Enter ConnectReseller API Key">
+                        <input type="password" id="setting-reg-api-key" value="{{ settings.registrar_api_key or '' }}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono" placeholder="Enter your ConnectReseller API Key">
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
@@ -1350,6 +1350,147 @@ Login Panel: http://127.0.0.1:5000/login`);
         });
         const data = await res.json();
         alert(data.message || 'Payment settings successfully saved!');
+    }
+
+    // REGISTRAR SETTINGS HANDLER
+    async function saveRegistrarSettings(e) {
+        if (e) e.preventDefault();
+        const payload = {
+            registrar_provider: document.getElementById('setting-reg-provider').value,
+            registrar_reseller_id: document.getElementById('setting-reg-reseller-id').value.trim(),
+            registrar_api_key: document.getElementById('setting-reg-api-key').value.trim(),
+            registrar_sandbox: document.getElementById('setting-reg-sandbox').checked ? '1' : '0',
+            registrar_auto_register: document.getElementById('setting-reg-auto').checked ? '1' : '0'
+        };
+
+        try {
+            const res = await fetch('/api/admin/settings/save', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.success) {
+                const badge = document.getElementById('registrar-mode-badge');
+                if (badge) {
+                    if (payload.registrar_sandbox === '1') {
+                        badge.innerText = 'Sandbox (₹0 Virtual)';
+                        badge.className = 'text-[10px] font-mono px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold';
+                    } else {
+                        badge.innerText = 'LIVE ICANN Active';
+                        badge.className = 'text-[10px] font-mono px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold';
+                    }
+                }
+                alert('Registrar credentials successfully saved to live database!');
+            } else {
+                alert('Error: ' + (data.message || 'Could not save settings'));
+            }
+        } catch (err) {
+            alert('Failed to save registrar settings: ' + err);
+        }
+    }
+
+    // TEST REGISTRAR CONNECTION
+    async function testRegistrarConnection() {
+        const btn = document.getElementById('btn-test-registrar');
+        const resBox = document.getElementById('registrar-test-result');
+        btn.disabled = true;
+        btn.innerHTML = `<span class="animate-spin inline-block mr-1">⚙</span> Testing...`;
+        if (resBox) resBox.classList.add('hidden');
+
+        try {
+            const payload = {
+                registrar_provider: document.getElementById('setting-reg-provider').value,
+                registrar_reseller_id: document.getElementById('setting-reg-reseller-id').value.trim(),
+                registrar_api_key: document.getElementById('setting-reg-api-key').value.trim(),
+                registrar_sandbox: document.getElementById('setting-reg-sandbox').checked ? '1' : '0',
+                registrar_auto_register: document.getElementById('setting-reg-auto').checked ? '1' : '0'
+            };
+            await fetch('/api/admin/settings/save', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+
+            const res = await fetch('/api/admin/registrar/test', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            });
+            const data = await res.json();
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="zap" class="w-3.5 h-3.5 text-indigo-600"></i><span>Test Connection</span>`;
+            if (window.lucide) lucide.createIcons();
+
+            if (resBox) {
+                resBox.classList.remove('hidden');
+                if (data.success) {
+                    resBox.className = 'mt-3 p-3 rounded-xl text-xs font-mono bg-emerald-50 text-emerald-900 border border-emerald-200';
+                    resBox.innerHTML = `<strong>SUCCESS:</strong> ${data.message} <br><span class="text-[11px] text-emerald-700">Provider: ${data.provider} | Balance: ₹${data.balance || 0}</span>`;
+                } else {
+                    resBox.className = 'mt-3 p-3 rounded-xl text-xs font-mono bg-rose-50 text-rose-900 border border-rose-200';
+                    resBox.innerHTML = `<strong>FAILED:</strong> ${data.message}`;
+                }
+            }
+        } catch (err) {
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="zap" class="w-3.5 h-3.5 text-indigo-600"></i><span>Test Connection</span>`;
+            if (resBox) {
+                resBox.classList.remove('hidden');
+                resBox.className = 'mt-3 p-3 rounded-xl text-xs font-mono bg-rose-50 text-rose-900 border border-rose-200';
+                resBox.innerHTML = `<strong>ERROR:</strong> Network connection error: ${err}`;
+            }
+        }
+    }
+
+    // TEST SERVER NODE CONNECTION
+    async function testServerNodeConnection() {
+        const btn = document.getElementById('btn-test-server');
+        const resBox = document.getElementById('server-test-result');
+        btn.disabled = true;
+        btn.innerHTML = `<span class="animate-spin inline-block mr-1">⚙</span> Testing Node...`;
+        if (resBox) resBox.classList.add('hidden');
+
+        try {
+            const payload = {
+                adapter_type: document.getElementById('setting-adapter').value,
+                server_public_ip: document.getElementById('setting-ip').value.trim(),
+                hestia_host: document.getElementById('setting-host').value.trim(),
+                hestia_password: document.getElementById('setting-key').value
+            };
+            await fetch('/api/admin/settings/save', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+
+            const res = await fetch('/api/admin/server/test', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            });
+            const data = await res.json();
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="server" class="w-3.5 h-3.5 text-primary-600"></i><span>Test Server Node</span>`;
+            if (window.lucide) lucide.createIcons();
+
+            if (resBox) {
+                resBox.classList.remove('hidden');
+                if (data.success) {
+                    resBox.className = 'mt-3 p-3 rounded-xl text-xs font-mono bg-emerald-50 text-emerald-900 border border-emerald-200';
+                    resBox.innerHTML = `<strong>SUCCESS:</strong> ${data.message}`;
+                } else {
+                    resBox.className = 'mt-3 p-3 rounded-xl text-xs font-mono bg-rose-50 text-rose-900 border border-rose-200';
+                    resBox.innerHTML = `<strong>FAILED:</strong> ${data.error || data.message || 'Connection failed'}`;
+                }
+            }
+        } catch (err) {
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="server" class="w-3.5 h-3.5 text-primary-600"></i><span>Test Server Node</span>`;
+            if (resBox) {
+                resBox.classList.remove('hidden');
+                resBox.className = 'mt-3 p-3 rounded-xl text-xs font-mono bg-rose-50 text-rose-900 border border-rose-200';
+                resBox.innerHTML = `<strong>ERROR:</strong> Network connection error: ${err}`;
+            }
+        }
     }
     // 10. SAVE SERVER SETTINGS
     async function saveServerSettings(e) {
