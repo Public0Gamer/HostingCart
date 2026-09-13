@@ -240,22 +240,22 @@ def seed_starter_data(cursor):
     plans = [
         (
             'Single Starter', 'single', 'Perfect for personal portfolios, resumes, and simple blogs.',
-            49, 588, 2352, 84,
+            199, 1188, 3312, 72,
             10, 100, 1, 0, 1, 0, 1, 0
         ),
         (
             'Plus Growth', 'premium', 'Best value for growing creators, startups & small businesses. Includes Free Domain.',
-            119, 1428, 5712, 78,
-            20, 500, 3, 1, 1, 0, 1, 0
+            349, 2148, 6672, 72,
+            25, 500, 3, 1, 1, 0, 1, 0
         ),
         (
             'Business Pro', 'unlimited', 'All-inclusive cloud package for e-commerce, high traffic & agencies. Free Domain + Daily Backups.',
-            199, 2388, 9552, 68,
+            599, 3348, 10992, 71,
             50, 1500, 9999, 1, 1, 1, 1, 1
         ),
         (
             'Enterprise Cloud', 'cloud-startup', 'Dedicated isolated vCPU & NVMe power for mission-critical portals & stores.',
-            479, 5748, 22992, 68,
+            999, 7188, 21552, 70,
             100, 5000, 9999, 1, 1, 1, 1, 0
         )
     ]

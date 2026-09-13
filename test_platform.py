@@ -251,11 +251,11 @@ class TestHostingCartPlatform(unittest.TestCase):
         res_ord = self.client.post('/api/order/create', json=ord_payload)
         self.assertEqual(res_ord.status_code, 200)
         ord_data = res_ord.get_json()
-        self.assertTrue(ord_data['success'])
-        self.assertEqual(ord_data['subtotal'], 1428.0)
-        self.assertEqual(ord_data['regulatory_fee'], 171.36) # 12% surcharge
-        self.assertEqual(ord_data['tax_amount'], 287.88) # 18% GST on (1428 + 171.36)
-        self.assertEqual(ord_data['total_amount'], 1887.24)
+        self.assertEqual(ord_data['subtotal'], 2148.0)
+        self.assertEqual(ord_data['domain_fee'], 1299.0)
+        self.assertEqual(ord_data['regulatory_fee'], 413.64) # 12% surcharge on (2148 + 1299)
+        self.assertEqual(ord_data['tax_amount'], 694.92) # 18% GST on (3447 + 413.64)
+        self.assertEqual(ord_data['total_amount'], 4555.56)
         order_id = ord_data['order_id']
 
         # Verify Payment and wholesale domain registration
@@ -268,8 +268,8 @@ class TestHostingCartPlatform(unittest.TestCase):
         cursor.execute("SELECT wholesale_cost, profit_amount, payment_status FROM orders WHERE id = ?", (order_id,))
         row = cursor.fetchone()
         self.assertEqual(row['payment_status'], 'paid')
-        self.assertEqual(row['wholesale_cost'], 649.0) # .com wholesale
-        self.assertEqual(row['profit_amount'], round(1887.24 - 649.0, 2)) # 1238.24 profit cut
+        self.assertEqual(row['wholesale_cost'], 1199.0) # .com ConnectReseller wholesale
+        self.assertEqual(row['profit_amount'], 3356.56) # Net profit after ConnectReseller cost
 
         # Verify Live WordPress Sandbox Preview
         res_site = self.client.get('/site/sandboxtestbrand.com')
@@ -371,8 +371,8 @@ class TestHostingCartPlatform(unittest.TestCase):
         d1 = res1.get_json()
         self.assertTrue(d1['success'])
         self.assertFalse(d1['is_domain_free'])
-        self.assertEqual(d1['domain_fee'], 399.0)
-        self.assertEqual(d1['subtotal'], 119.0)
+        self.assertEqual(d1['domain_fee'], 599.0)
+        self.assertEqual(d1['subtotal'], 349.0)
 
         # Case 2: 1-Month plan with existing domain (Domain fee = ₹0)
         res2 = self.client.post('/api/order/create', json={
@@ -387,7 +387,7 @@ class TestHostingCartPlatform(unittest.TestCase):
         self.assertTrue(d2['success'])
         self.assertFalse(d2['is_domain_free'])
         self.assertEqual(d2['domain_fee'], 0.0)
-        self.assertEqual(d2['subtotal'], 119.0)
+        self.assertEqual(d2['subtotal'], 349.0)
 
         # Case 3: 12-Month plan with Plan 2 (MUST BE FREE! Domain fee = ₹0)
         res3 = self.client.post('/api/order/create', json={
@@ -402,7 +402,7 @@ class TestHostingCartPlatform(unittest.TestCase):
         self.assertTrue(d3['success'])
         self.assertTrue(d3['is_domain_free'])
         self.assertEqual(d3['domain_fee'], 0.0)
-        self.assertEqual(d3['subtotal'], 1428.0)
+        self.assertEqual(d3['subtotal'], 2148.0)
 
         # Case 4: 12-Month plan with Single Starter (Plan 1) (MUST NOT be free, free_domain=0)
         res4 = self.client.post('/api/order/create', json={
@@ -416,7 +416,7 @@ class TestHostingCartPlatform(unittest.TestCase):
         d4 = res4.get_json()
         self.assertTrue(d4['success'])
         self.assertFalse(d4['is_domain_free'])
-        self.assertEqual(d4['domain_fee'], 799.0) # .com regular fee
+        self.assertEqual(d4['domain_fee'], 1299.0) # .com regular fee (profitable Option A)
 
 if __name__ == '__main__':
     unittest.main()

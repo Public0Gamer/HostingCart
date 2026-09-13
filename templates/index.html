@@ -37,7 +37,7 @@
                         <div>
                             <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Plans Starting At</span>
                             <div class="flex items-baseline gap-1">
-                                <span class="text-3xl font-black text-slate-900">₹49</span>
+                                <span class="text-3xl font-black text-slate-900">₹69</span>
                                 <span class="text-xs text-slate-500 font-semibold">/month</span>
                             </div>
                         </div>
@@ -152,10 +152,10 @@
 
             <!-- TLD Price Chips -->
             <div class="flex flex-wrap items-center justify-center gap-4 mt-3.5 text-xs text-slate-500 font-semibold">
-                <span class="bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200"><strong class="text-slate-800">.com</strong> ₹799/yr</span>
-                <span class="bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200"><strong class="text-slate-800">.in</strong> ₹399/yr</span>
-                <span class="bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200"><strong class="text-slate-800">.org</strong> ₹999/yr</span>
-                <span class="bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200"><strong class="text-slate-800">.xyz</strong> ₹199/yr</span>
+                <span class="bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200"><strong class="text-slate-800">.com</strong> ₹1,299/yr</span>
+                <span class="bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200"><strong class="text-slate-800">.in</strong> ₹599/yr</span>
+                <span class="bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200"><strong class="text-slate-800">.org</strong> ₹1,349/yr</span>
+                <span class="bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200"><strong class="text-slate-800">.xyz</strong> ₹299/yr</span>
                 <span class="text-orange-600 font-bold flex items-center gap-1">
                     <i data-lucide="gift" class="w-3.5 h-3.5"></i> Free with 12M+ Hosting
                 </span>
@@ -200,32 +200,27 @@
             <div class="bg-white rounded-3xl p-7 border border-slate-200 flex flex-col justify-between hover:shadow-xl transition relative">
                 <div>
                     <div class="flex items-center justify-between mb-3">
-                        <span class="px-2.5 py-1 rounded-full text-xs font-black bg-blue-50 text-blue-700">Save 84%</span>
+                        <span class="px-2.5 py-1 rounded-full text-xs font-black bg-blue-50 text-blue-700">Save 72%</span>
                     </div>
                     <h3 class="text-2xl font-black text-slate-900 mb-1">Single Starter</h3>
                     <p class="text-xs text-slate-500 mb-6 h-8 leading-snug">Perfect for personal portfolios, resumes, and simple blogs.</p>
 
                     <!-- Price Box -->
                     <div class="mb-4">
-                        <div class="text-xs text-slate-400 line-through font-semibold plan-regular-price">₹299</div>
+                        <div class="text-xs text-slate-400 line-through font-semibold plan-regular-price">₹249</div>
                         <div class="flex items-baseline gap-1 my-0.5">
                             <span class="text-xs text-slate-600 font-bold">₹</span>
-                            <span class="text-4xl font-black text-slate-900 plan-price" data-monthly="49" data-yearly="49" data-48m="49">49.00</span>
+                            <span class="text-4xl font-black text-slate-900 plan-price" data-monthly="199" data-yearly="99" data-48m="69">69.00</span>
                             <span class="text-xs text-slate-500 font-semibold">/mo</span>
                         </div>
-                        {% if active_promo %}
-                        <div class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg mt-1 mb-2">
-                            <i data-lucide="tag" class="w-3 h-3 text-emerald-600"></i> Code '{{ active_promo.code }}' ({{ active_promo.discount_label }})
-                        </div>
-                        {% endif %}
                     </div>
 
                     <!-- CTA Button -->
-                    <a href="/checkout?plan=single&cycle=48m{% if active_promo %}&coupon={{ active_promo.code }}{% endif %}" class="plan-order-link w-full py-3 rounded-2xl border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-black text-xs text-center block transition shadow-sm mb-3" data-slug="single">
+                    <a href="/checkout?plan=single&cycle=48m" class="plan-order-link w-full py-3 rounded-2xl border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-black text-xs text-center block transition shadow-sm mb-3" data-slug="single">
                         Choose Starter
                     </a>
                     <div class="text-[11px] text-slate-500 mb-6 plan-subtext leading-tight">
-                        Get 48 months for ₹2,352.00 (regular price ₹14,352). Renews at ₹199/mo.
+                        Get 48 months for ₹3,312.00 (regular price ₹11,952). Renews at ₹199/mo.
                     </div>
 
                     <!-- Core Features Checklist -->
@@ -270,7 +265,7 @@
             <div class="bg-white rounded-3xl p-7 border border-slate-200 flex flex-col justify-between hover:shadow-xl transition relative">
                 <div>
                     <div class="flex items-center justify-between mb-3">
-                        <span class="px-2.5 py-1 rounded-full text-xs font-black bg-blue-50 text-blue-700">Save 78%</span>
+                        <span class="px-2.5 py-1 rounded-full text-xs font-black bg-blue-50 text-blue-700">Save 72%</span>
                     </div>
                     <h3 class="text-2xl font-black text-slate-900 mb-1">Plus Growth</h3>
                     <p class="text-xs text-slate-500 mb-6 h-8 leading-snug">Best value for growing creators, startups & small businesses.</p>
@@ -280,22 +275,17 @@
                         <div class="text-xs text-slate-400 line-through font-semibold plan-regular-price">₹499</div>
                         <div class="flex items-baseline gap-1 my-0.5">
                             <span class="text-xs text-slate-600 font-bold">₹</span>
-                            <span class="text-4xl font-black text-slate-900 plan-price" data-monthly="119" data-yearly="119" data-48m="119">119.00</span>
+                            <span class="text-4xl font-black text-slate-900 plan-price" data-monthly="349" data-yearly="179" data-48m="139">139.00</span>
                             <span class="text-xs text-slate-500 font-semibold">/mo</span>
                         </div>
-                        {% if active_promo %}
-                        <div class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg mt-1 mb-2">
-                            <i data-lucide="tag" class="w-3 h-3 text-emerald-600"></i> Code '{{ active_promo.code }}' ({{ active_promo.discount_label }})
-                        </div>
-                        {% endif %}
                     </div>
 
                     <!-- CTA Button -->
-                    <a href="/checkout?plan=premium&cycle=48m{% if active_promo %}&coupon={{ active_promo.code }}{% endif %}" class="plan-order-link w-full py-3 rounded-2xl border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-black text-xs text-center block transition shadow-sm mb-3" data-slug="premium">
+                    <a href="/checkout?plan=premium&cycle=48m" class="plan-order-link w-full py-3 rounded-2xl border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-black text-xs text-center block transition shadow-sm mb-3" data-slug="premium">
                         Choose Plus Growth
                     </a>
                     <div class="text-[11px] text-slate-500 mb-6 plan-subtext leading-tight">
-                        Get 48 months for ₹5,712.00 (regular price ₹23,952). Renews at ₹299/mo.
+                        Get 48 months for ₹6,672.00 (regular price ₹23,952). Renews at ₹349/mo.
                     </div>
 
                     <!-- Core Features Checklist -->
@@ -339,7 +329,7 @@
             <!-- ================= CARD 3: BUSINESS PRO (FEATURED HERO CARD) ================= -->
             <div class="bg-[#0F172A] text-white rounded-3xl p-7 border-2 border-blue-600 shadow-2xl flex flex-col justify-between relative transform lg:-translate-y-2">
                 <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[11px] font-black px-4 py-1 rounded-full uppercase tracking-wider shadow-lg shadow-blue-600/40 flex items-center gap-1.5 whitespace-nowrap">
-                    <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-300"></i> ⭐ Most Popular • Save 68%
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-300"></i> ⭐ Most Popular • Save 71%
                 </div>
 
                 <div>
@@ -351,25 +341,20 @@
 
                     <!-- Price Box -->
                     <div class="mb-4">
-                        <div class="text-xs text-slate-400 line-through font-semibold plan-regular-price">₹599</div>
+                        <div class="text-xs text-slate-400 line-through font-semibold plan-regular-price">₹799</div>
                         <div class="flex items-baseline gap-1 my-0.5">
                             <span class="text-xs text-slate-400 font-bold">₹</span>
-                            <span class="text-4xl font-black text-white plan-price" data-monthly="199" data-yearly="199" data-48m="199">199.00</span>
+                            <span class="text-4xl font-black text-white plan-price" data-monthly="599" data-yearly="279" data-48m="229">229.00</span>
                             <span class="text-xs text-slate-400 font-semibold">/mo</span>
                         </div>
-                        {% if active_promo %}
-                        <div class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-lg mt-1 mb-2">
-                            <i data-lucide="tag" class="w-3 h-3 text-emerald-400"></i> Code '{{ active_promo.code }}' ({{ active_promo.discount_label }})
-                        </div>
-                        {% endif %}
                     </div>
 
                     <!-- CTA Button -->
-                    <a href="/checkout?plan=unlimited&cycle=48m{% if active_promo %}&coupon={{ active_promo.code }}{% endif %}" class="plan-order-link w-full py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs text-center block shadow-lg shadow-blue-600/40 transition mb-3" data-slug="unlimited">
+                    <a href="/checkout?plan=unlimited&cycle=48m" class="plan-order-link w-full py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs text-center block shadow-lg shadow-blue-600/40 transition mb-3" data-slug="unlimited">
                         Get Started Now
                     </a>
                     <div class="text-[11px] text-slate-400 mb-6 plan-subtext leading-tight">
-                        Get 48 months for ₹9,552.00 (regular price ₹28,752). Renews at ₹449/mo.
+                        Get 48 months for ₹10,992.00 (regular price ₹38,352). Renews at ₹599/mo.
                     </div>
 
                     <!-- Core Features Checklist -->
@@ -420,32 +405,27 @@
             <div class="bg-white rounded-3xl p-7 border border-slate-200 flex flex-col justify-between hover:shadow-xl transition relative">
                 <div>
                     <div class="flex items-center justify-between mb-3">
-                        <span class="px-2.5 py-1 rounded-full text-xs font-black bg-blue-50 text-blue-700">Dedicated Power</span>
+                        <span class="px-2.5 py-1 rounded-full text-xs font-black bg-blue-50 text-blue-700">Save 70%</span>
                     </div>
                     <h3 class="text-2xl font-black text-slate-900 mb-1">Enterprise Cloud</h3>
                     <p class="text-xs text-slate-500 mb-6 h-8 leading-snug">Dedicated isolated vCPU & NVMe power for mission-critical portals & stores.</p>
 
                     <!-- Price Box -->
                     <div class="mb-4">
-                        <div class="text-xs text-slate-400 line-through font-semibold plan-regular-price">₹1,399</div>
+                        <div class="text-xs text-slate-400 line-through font-semibold plan-regular-price">₹1,499</div>
                         <div class="flex items-baseline gap-1 my-0.5">
                             <span class="text-xs text-slate-600 font-bold">₹</span>
-                            <span class="text-4xl font-black text-slate-900 plan-price" data-monthly="479" data-yearly="479" data-48m="479">479.00</span>
+                            <span class="text-4xl font-black text-slate-900 plan-price" data-monthly="999" data-yearly="599" data-48m="449">449.00</span>
                             <span class="text-xs text-slate-500 font-semibold">/mo</span>
                         </div>
-                        {% if active_promo %}
-                        <div class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg mt-1 mb-2">
-                            <i data-lucide="tag" class="w-3 h-3 text-emerald-600"></i> Code '{{ active_promo.code }}' ({{ active_promo.discount_label }})
-                        </div>
-                        {% endif %}
                     </div>
 
                     <!-- CTA Button -->
-                    <a href="/checkout?plan=cloud-startup&cycle=48m{% if active_promo %}&coupon={{ active_promo.code }}{% endif %}" class="plan-order-link w-full py-3 rounded-2xl border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-black text-xs text-center block transition shadow-sm mb-3" data-slug="cloud-startup">
+                    <a href="/checkout?plan=cloud-startup&cycle=48m" class="plan-order-link w-full py-3 rounded-2xl border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-black text-xs text-center block transition shadow-sm mb-3" data-slug="cloud-startup">
                         Choose Enterprise
                     </a>
                     <div class="text-[11px] text-slate-500 mb-6 plan-subtext leading-tight">
-                        Get 48 months for ₹22,992.00 (regular price ₹67,152). Renews at ₹899/mo.
+                        Get 48 months for ₹21,552.00 (regular price ₹71,952). Renews at ₹999/mo.
                     </div>
 
                     <!-- Core Features Checklist -->
@@ -733,9 +713,6 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-    window.ACTIVE_PROMO_CODE = "{% if active_promo %}{{ active_promo.code }}{% endif %}";
-</script>
 <script src="/static/js/app.js"></script>
 <script>
     let selectedRating = 5;
