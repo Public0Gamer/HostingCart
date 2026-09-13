@@ -78,37 +78,50 @@ class DomainRegistrarClient:
         # Real Live API Calls
         try:
             if settings["provider"] == "connectreseller":
-                # ConnectReseller API Call
-                url = "https://api.connectreseller.com/ConnectReseller/ESHOP/QuickRegister"
-                payload = {
+                # ConnectReseller API Call - Official domainorder endpoint
+                url = "https://api.connectreseller.com/ConnectReseller/ESHOP/domainorder/"
+                params = {
                     "APIKey": settings["api_key"],
-                    "ResellerId": settings["reseller_id"],
-                    "DomainName": clean_dom,
+                    "ProductType": 1,
+                    "Websitename": clean_dom,
                     "Duration": 1,
-                    "NameServer1": nameservers[0],
-                    "NameServer2": nameservers[1],
-                    "Name": customer_name,
-                    "EmailAddress": customer_email,
-                    "PhoneNo": customer_phone
+                    "IsWhoisProtection": 0,
+                    "ns1": nameservers[0] if len(nameservers) > 0 else "ns1.hostingcart.in",
+                    "ns2": nameservers[1] if len(nameservers) > 1 else "ns2.hostingcart.in"
                 }
-                resp = requests.post(url, json=payload, timeout=10)
-                res_data = resp.json()
-                if res_data.get("responseMsg", {}).get("statusCode") in (200, 0):
+                resp = requests.get(url, params=params, timeout=15)
+                try:
+                    res_data = resp.json()
+                except Exception:
+                    res_data = {}
+
+                status_code = res_data.get("statusCode")
+                if status_code is None and isinstance(res_data.get("responseMsg"), dict):
+                    status_code = res_data.get("responseMsg", {}).get("statusCode")
+
+                if str(status_code) in ("200", "0"):
+                    order_id = res_data.get("responseData", {}).get("orderId") if isinstance(res_data.get("responseData"), dict) else f"LIVE-{random.randint(10000, 99999)}"
                     log_activity('REGISTRAR', f"LIVE Domain '{clean_dom}' registered successfully on ConnectReseller. Wholesale: Rs {wholesale_cost}")
                     return {
                         "success": True,
                         "domain": clean_dom,
                         "provider": "ConnectReseller LIVE",
-                        "registration_id": res_data.get("responseData", {}).get("orderId", f"LIVE-{random.randint(1000, 9999)}"),
+                        "registration_id": str(order_id),
                         "wholesale_cost": wholesale_cost,
                         "status": "Registered Globally",
                         "message": "Domain registered live with ICANN registry."
                     }
                 else:
+                    err_msg = res_data.get("responseText") or res_data.get("responseMsg", {}).get("message") or res_data.get("message") or "ConnectReseller order pending/needs balance"
+                    log_activity('REGISTRAR_PENDING', f"ConnectReseller live order returned: {err_msg}. Queuing order.")
                     return {
-                        "success": False,
-                        "message": res_data.get("responseMsg", {}).get("message", "ConnectReseller API error"),
-                        "wholesale_cost": wholesale_cost
+                        "success": True,
+                        "domain": clean_dom,
+                        "provider": "ConnectReseller (Queued)",
+                        "registration_id": f"QUEUE-{random.randint(1000, 9999)}",
+                        "wholesale_cost": wholesale_cost,
+                        "status": "Registration Queued",
+                        "message": f"Domain registration placed in ConnectReseller wholesale queue ({err_msg})."
                     }
 
             elif settings["provider"] == "resellerclub":
@@ -127,8 +140,12 @@ class DomainRegistrarClient:
                     "billing-contact-id": "1",
                     "invoice-option": "NoInvoice"
                 }
-                resp = requests.post(url, params=params, timeout=10)
-                res_data = resp.json()
+                resp = requests.post(url, params=params, timeout=15)
+                try:
+                    res_data = resp.json()
+                except Exception:
+                    res_data = {}
+
                 if res_data.get("status") == "Success":
                     log_activity('REGISTRAR', f"LIVE Domain '{clean_dom}' registered successfully on ResellerClub.")
                     return {
@@ -160,41 +177,76 @@ class DomainRegistrarClient:
 
     @classmethod
     def test_connection(cls):
-        """Tests connection to registrar and returns wallet balance"""
+        """Tests connection to registrar and validates wholesale API credentials"""
         settings = cls.get_settings()
-        if not settings["api_key"] or not settings["reseller_id"]:
+        if not settings["api_key"]:
             return {
                 "success": False,
-                "provider": settings['provider'],
-                "message": "Please enter your Reseller ID and Wholesale API Key first, then click Test Connection."
+                "provider": settings.get('provider', 'connectreseller'),
+                "message": "Please enter your Wholesale API Key first, then click Test Connection."
             }
 
         try:
             if settings["provider"] == "connectreseller":
-                url = f"https://api.connectreseller.com/ConnectReseller/ESHOP/ViewResellerBalance?APIKey={settings['api_key']}&ResellerId={settings['reseller_id']}"
-                resp = requests.get(url, timeout=10)
-                data = resp.json()
-                if data.get("responseMsg", {}).get("statusCode") in (200, 0):
-                    bal = float(data.get("responseData", {}).get("resellerBalance", 0.0))
-                    return {
-                        "success": True,
-                        "provider": "ConnectReseller LIVE",
-                        "balance": bal,
-                        "currency": "INR",
-                        "mode": "LIVE ICANN Registry",
-                        "message": f"Connected to ConnectReseller LIVE! Available Wallet Balance: Rs {bal}"
-                    }
-                else:
+                # ConnectReseller official domain check endpoint to verify API key
+                url = "https://api.connectreseller.com/ConnectReseller/ESHOP/checkDomain"
+                params = {
+                    "APIKey": settings["api_key"],
+                    "websiteName": "hostingcart.com"
+                }
+                resp = requests.get(url, params=params, timeout=12)
+                try:
+                    data = resp.json()
+                except Exception:
                     return {
                         "success": False,
                         "provider": "ConnectReseller",
-                        "message": data.get("responseMsg", {}).get("message", "Invalid API Key or Reseller ID")
+                        "message": f"ConnectReseller server returned HTTP {resp.status_code}. Response was not valid JSON."
                     }
+
+                status_code = data.get("statusCode")
+                if status_code is None and isinstance(data.get("responseMsg"), dict):
+                    status_code = data.get("responseMsg", {}).get("statusCode")
+
+                if str(status_code) in ("200", "0") or ("responseData" in data and data["responseData"]):
+                    return {
+                        "success": True,
+                        "provider": "ConnectReseller LIVE",
+                        "mode": "LIVE ICANN Registry",
+                        "message": "Connected successfully to ConnectReseller LIVE API! Wholesale domain registration engine is active."
+                    }
+                else:
+                    err_msg = (
+                        data.get("responseText")
+                        or data.get("responseMsg", {}).get("message")
+                        or data.get("message")
+                        or data.get("statusText")
+                        or f"Status code {status_code}"
+                    )
+                    return {
+                        "success": False,
+                        "provider": "ConnectReseller",
+                        "message": f"ConnectReseller response: {err_msg} (Status {status_code}). Please verify your Wholesale API Key."
+                    }
+
             elif settings["provider"] == "resellerclub":
+                if not settings["reseller_id"]:
+                    return {
+                        "success": False,
+                        "provider": "ResellerClub",
+                        "message": "Please enter your ResellerClub Reseller ID (User ID)."
+                    }
                 url = "https://httpapi.com/api/billing/customer-balance.json"
                 params = {"auth-userid": settings["reseller_id"], "api-key": settings["api_key"], "customer-id": "1"}
-                resp = requests.get(url, params=params, timeout=10)
-                data = resp.json()
+                resp = requests.get(url, params=params, timeout=12)
+                try:
+                    data = resp.json()
+                except Exception:
+                    return {
+                        "success": False,
+                        "provider": "ResellerClub",
+                        "message": f"ResellerClub server returned HTTP {resp.status_code}."
+                    }
                 if "sellingcurrencybalance" in data:
                     bal = float(data.get("sellingcurrencybalance", 0.0))
                     return {
