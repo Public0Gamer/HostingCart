@@ -230,15 +230,33 @@ class DomainRegistrarClient:
                 if is_authenticated and str(status_code) not in ("401", "402") and "unauthenticated" not in err_msg.lower():
                     return {
                         "success": True,
+                        "code": 200,
                         "provider": "ConnectReseller LIVE",
                         "mode": "LIVE ICANN Registry",
                         "message": "Connected successfully to ConnectReseller LIVE API! Wholesale API Key & IP Whitelist are verified and active."
                     }
+                elif str(status_code) == "401" or "unauthorized" in str(data.get("statusText", "")).lower() or "unauthenticated" in err_msg.lower():
+                    return {
+                        "success": False,
+                        "code": 401,
+                        "status": "ip_pending",
+                        "provider": "ConnectReseller",
+                        "message": "API Key is saved, but ConnectReseller returned 401 (IP Whitelist Pending). Your Server IP needs to be added to ConnectReseller Authorized IPs."
+                    }
+                elif str(status_code) == "402" or "invaliduser" in str(data.get("statusText", "")).lower():
+                    return {
+                        "success": False,
+                        "code": 402,
+                        "status": "invalid_key",
+                        "provider": "ConnectReseller",
+                        "message": "ConnectReseller rejected this Wholesale API Key (Status 402 - Invalid User). Please verify the key in your ConnectReseller account."
+                    }
                 else:
                     return {
                         "success": False,
+                        "code": status_code or 500,
                         "provider": "ConnectReseller",
-                        "message": f"ConnectReseller response: {err_msg} (Status {status_code}). Please verify your Wholesale API Key."
+                        "message": f"ConnectReseller response: {err_msg} (Status {status_code})."
                     }
 
             elif settings["provider"] == "resellerclub":
