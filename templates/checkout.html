@@ -80,6 +80,7 @@
                             <span class="text-[10px] text-slate-500 mt-2">Billed monthly</span>
                         </label>
                     </div>
+                    <div id="plan-renewal-note" class="text-[11px] text-slate-500 mt-2 font-medium"></div>
                 </div>
 
                 <!-- Hostinger-Style Deal Switcher Banner (Shown on 1-Month Plan selection) -->
@@ -313,16 +314,22 @@
             <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xl sticky top-28">
                 <h3 class="text-xl font-black text-slate-900 mb-5">Order Summary</h3>
 
+                {% set initial_subtotal = plan.price_48m if cycle == '48m' else (plan.price_monthly if cycle == 'monthly' else plan.price_yearly) %}
+                {% set initial_surcharge = (initial_subtotal * 0.12)|round(2) %}
+                {% set initial_taxable = initial_subtotal + initial_surcharge %}
+                {% set initial_gst = (initial_taxable * 0.18)|round(2) %}
+                {% set initial_total = (initial_taxable + initial_gst)|round(2) %}
+
                 <!-- Plan Line Item -->
                 <div class="space-y-3 text-xs border-b border-slate-100 pb-4 mb-4">
                     <div class="flex justify-between items-center text-slate-700">
                         <div>
                             <strong class="text-slate-900 block">{{ plan.name }}</strong>
-                            <span class="text-slate-500" id="summary-period-title">48-Month Period</span>
+                            <span class="text-slate-500" id="summary-period-title">{% if cycle == 'monthly' %}1-Month Period{% elif cycle == 'yearly' %}12-Month Period{% else %}48-Month Period{% endif %}</span>
                         </div>
                         <div class="text-right">
-                            <span class="text-slate-400 line-through font-mono text-[11px] block" id="summary-regular-plan">₹14,352</span>
-                            <span class="font-mono font-bold text-slate-900" id="summary-subtotal">₹{{ plan.price_48m }}</span>
+                            <span class="text-slate-400 line-through font-mono text-[11px] block" id="summary-regular-plan">₹{{ initial_subtotal * 3 }}</span>
+                            <span class="font-mono font-bold text-slate-900" id="summary-subtotal">₹{{ initial_subtotal }}</span>
                         </div>
                     </div>
 
@@ -353,7 +360,7 @@
                             <span>Cloud Infrastructure & Surcharge</span>
                             <span class="text-[10px] text-slate-400" title="Covers datacenter peering and routing">(12%)</span>
                         </span>
-                        <span class="font-mono font-semibold" id="summary-surcharge">₹0.00</span>
+                        <span class="font-mono font-semibold" id="summary-surcharge">₹{{ "%.2f"|format(initial_surcharge) }}</span>
                     </div>
 
                     <!-- GST 18% -->
@@ -362,7 +369,7 @@
                             <span>Goods & Services Tax (GST)</span>
                             <span class="text-[10px] text-slate-400">(18%)</span>
                         </span>
-                        <span class="font-mono font-semibold" id="summary-gst">₹0.00</span>
+                        <span class="font-mono font-semibold" id="summary-gst">₹{{ "%.2f"|format(initial_gst) }}</span>
                     </div>
 
                     <!-- Coupon Discount Row -->
@@ -378,7 +385,10 @@
                 <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 mb-5">
                     <div class="flex items-baseline justify-between">
                         <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Due Today</span>
-                        <span class="text-3xl font-black text-slate-900 font-mono" id="summary-final-total">₹0.00</span>
+                        <div class="text-right">
+                            <span class="text-xs text-slate-400 line-through font-mono mr-2" id="summary-strikethrough-total">₹{{ "%.2f"|format(initial_subtotal * 3.2) }}</span>
+                            <span class="text-3xl font-black text-slate-900 font-mono" id="summary-final-total">₹{{ "%.2f"|format(initial_total) }}</span>
+                        </div>
                     </div>
                 </div>
 
@@ -801,10 +811,17 @@
         const gst = Math.round(taxable * 0.18 * 100) / 100;
         const finalTotal = Math.round((taxable + gst) * 100) / 100;
 
-        document.getElementById('summary-surcharge').innerText = `₹${surcharge.toFixed(2)}`;
-        document.getElementById('summary-gst').innerText = `₹${gst.toFixed(2)}`;
-        document.getElementById('summary-strikethrough-total').innerText = `₹${((subtotal + domainFee) * 3.2).toLocaleString('en-IN', {maximumFractionDigits: 2})}`;
-        document.getElementById('summary-final-total').innerText = `₹${finalTotal.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        const surchargeEl = document.getElementById('summary-surcharge');
+        if (surchargeEl) surchargeEl.innerText = `₹${surcharge.toFixed(2)}`;
+
+        const gstEl = document.getElementById('summary-gst');
+        if (gstEl) gstEl.innerText = `₹${gst.toFixed(2)}`;
+
+        const strikeEl = document.getElementById('summary-strikethrough-total');
+        if (strikeEl) strikeEl.innerText = `₹${((subtotal + domainFee) * 3.2).toLocaleString('en-IN', {maximumFractionDigits: 2})}`;
+
+        const finalTotalEl = document.getElementById('summary-final-total');
+        if (finalTotalEl) finalTotalEl.innerText = `₹${finalTotal.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
 
         return finalTotal;
     }
