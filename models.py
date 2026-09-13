@@ -64,6 +64,7 @@ def init_db():
         discount_value REAL NOT NULL,
         discount_percent INTEGER DEFAULT 0,
         active INTEGER DEFAULT 1,
+        is_featured INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     ''')

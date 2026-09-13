@@ -501,43 +501,72 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <div class="sm:col-span-1">
                         <label class="block text-[11px] font-bold text-slate-600 mb-1">Coupon Code</label>
-                        <input type="text" id="new-coupon-code" placeholder="e.g. FLAT100" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs uppercase font-mono text-slate-900 font-bold focus:outline-none focus:border-primary-600" required>
+                        <input type="text" id="new-coupon-code" placeholder="e.g. SAVE20" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs uppercase font-mono text-slate-900 font-bold focus:outline-none focus:border-primary-600" required>
                     </div>
                     <div>
                         <label class="block text-[11px] font-bold text-slate-600 mb-1">Discount Type</label>
                         <select id="new-coupon-type" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-bold focus:outline-none focus:border-primary-600">
-                            <option value="fixed">Flat Rupee (₹ OFF)</option>
                             <option value="percent">Percentage (% OFF)</option>
+                            <option value="fixed">Flat Rupee (₹ OFF)</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-[11px] font-bold text-slate-600 mb-1">Value (Amount)</label>
-                        <input type="number" id="new-coupon-value" placeholder="e.g. 100 or 20" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-bold focus:outline-none focus:border-primary-600" value="100" min="1" required>
+                        <input type="number" id="new-coupon-value" placeholder="e.g. 10 or 100" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-bold focus:outline-none focus:border-primary-600" value="10" min="1" required>
                     </div>
+                </div>
+                <div class="flex items-center gap-2 pt-1">
+                    <label class="flex items-center gap-2 text-xs text-slate-700 font-semibold cursor-pointer">
+                        <input type="checkbox" id="new-coupon-featured" class="rounded text-blue-600">
+                        <span>Set as Featured Deal on Website Storefront (Top Banner & Checkout)</span>
+                    </label>
                 </div>
                 <button type="submit" class="w-full py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center justify-center gap-1.5">
                     <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                    <span>Create & Activate Promo Code</span>
+                    <span>Create & Activate Real Coupon</span>
                 </button>
             </form>
 
-            <div class="space-y-2 font-mono text-xs">
+            <div class="space-y-2.5 font-mono text-xs">
                 {% for c in coupons %}
-                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between" id="coupon-row-{{ c.id }}">
+                    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-2" id="coupon-row-{{ c.id }}">
                         <div>
-                            <strong class="text-slate-900">{{ c.code }}</strong>
-                            <span class="text-emerald-700 font-sans ml-2 font-bold">
-                                {% if c.discount_type == 'fixed' %}
-                                    (Flat ₹{{ c.discount_value|int }} OFF)
+                            <div class="flex items-center gap-2">
+                                <strong class="text-slate-900 text-sm font-black">{{ c.code }}</strong>
+                                <span class="text-emerald-700 font-sans font-bold text-xs">
+                                    {% if c.discount_type == 'fixed' %}
+                                        (Flat ₹{{ c.discount_value|int }} OFF)
+                                    {% else %}
+                                        ({{ c.discount_value|int or c.discount_percent }}% OFF)
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-2 mt-1">
+                                {% if c.active == 1 %}
+                                    <span class="text-[9px] px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full font-bold font-sans">ACTIVE</span>
                                 {% else %}
-                                    ({{ c.discount_value|int or c.discount_percent }}% OFF)
+                                    <span class="text-[9px] px-2 py-0.5 bg-slate-200 text-slate-600 rounded-full font-bold font-sans">PAUSED</span>
                                 {% endif %}
-                            </span>
+
+                                {% if c.is_featured == 1 %}
+                                    <span class="text-[9px] px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-300 rounded-full font-bold font-sans flex items-center gap-1">
+                                        <i data-lucide="star" class="w-2.5 h-2.5 fill-amber-500 text-amber-500"></i> LIVE ON STOREFRONT
+                                    </span>
+                                {% endif %}
+                            </div>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-[10px] px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold font-sans">ACTIVE</span>
-                            <button onclick="deleteAdminCoupon({{ c.id }})" class="text-slate-400 hover:text-rose-600 transition p-1" title="Delete Coupon">
-                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        <div class="flex items-center gap-1.5 font-sans">
+                            {% if c.is_featured != 1 %}
+                                <button onclick="featureAdminCoupon({{ c.id }})" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-[11px] font-bold transition flex items-center gap-1" title="Display on Storefront Banner">
+                                    <i data-lucide="star" class="w-3 h-3 text-amber-600"></i>
+                                    <span>Feature</span>
+                                </button>
+                            {% endif %}
+                            <button onclick="toggleAdminCoupon({{ c.id }})" class="px-2.5 py-1 {% if c.active == 1 %}bg-slate-100 hover:bg-slate-200 text-slate-700{% else %}bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200{% endif %} rounded-lg text-[11px] font-bold transition" title="Toggle Active / Inactive">
+                                {% if c.active == 1 %}Pause{% else %}Activate{% endif %}
+                            </button>
+                            <button onclick="deleteAdminCoupon({{ c.id }})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Delete Coupon">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                         </div>
                     </div>
@@ -1242,11 +1271,12 @@ Login Panel: http://127.0.0.1:5000/login`);
         const code = document.getElementById('new-coupon-code').value.trim();
         const dtype = document.getElementById('new-coupon-type').value;
         const dval = document.getElementById('new-coupon-value').value;
+        const isFeatured = document.getElementById('new-coupon-featured').checked ? 1 : 0;
 
         const res = await fetch('/api/admin/coupon/create', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ code, discount_type: dtype, discount_value: dval })
+            body: JSON.stringify({ code, discount_type: dtype, discount_value: dval, is_featured: isFeatured })
         });
         const data = await res.json();
         alert(data.message);
@@ -1255,7 +1285,35 @@ Login Panel: http://127.0.0.1:5000/login`);
         }
     }
 
-    // 9. COUPON DELETION
+    // 9. COUPON TOGGLE ACTIVE / PAUSE
+    async function toggleAdminCoupon(couponId) {
+        const res = await fetch('/api/admin/coupon/toggle', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ coupon_id: couponId })
+        });
+        const data = await res.json();
+        alert(data.message);
+        if (data.success) {
+            window.location.reload();
+        }
+    }
+
+    // 10. COUPON FEATURE ON STOREFRONT
+    async function featureAdminCoupon(couponId) {
+        const res = await fetch('/api/admin/coupon/feature', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ coupon_id: couponId })
+        });
+        const data = await res.json();
+        alert(data.message);
+        if (data.success) {
+            window.location.reload();
+        }
+    }
+
+    // 11. COUPON DELETION
     async function deleteAdminCoupon(couponId) {
         if (!confirm('Are you sure you want to delete this coupon?')) return;
 

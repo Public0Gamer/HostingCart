@@ -76,6 +76,27 @@
                     <td class="py-3 uppercase text-slate-600">{{ order.billing_cycle }}</td>
                     <td class="py-3 text-right font-mono font-bold text-slate-900">₹{{ order.subtotal }}</td>
                 </tr>
+                {% if order.domain_type == 'existing' %}
+                <tr class="bg-slate-50/50">
+                    <td class="py-2.5">
+                        <strong class="text-slate-700 block">Existing Domain Mapping</strong>
+                        <span class="text-slate-400 text-[10px]">DNS zone and nameserver routing</span>
+                    </td>
+                    <td class="py-2.5 font-mono text-slate-500 text-[11px]">{{ order.domain_name }}</td>
+                    <td class="py-2.5 text-slate-500 text-[11px]">External</td>
+                    <td class="py-2.5 text-right font-mono font-bold text-emerald-600">FREE</td>
+                </tr>
+                {% elif order.domain_type == 'new' and (order.billing_cycle in ['yearly', '48m']) and (order.plan_id != 1) %}
+                <tr class="bg-emerald-50/40">
+                    <td class="py-2.5">
+                        <strong class="text-emerald-900 block">Free 1-Year Domain Registration</strong>
+                        <span class="text-emerald-700 text-[10px]">Annual plan promotion included</span>
+                    </td>
+                    <td class="py-2.5 font-mono text-emerald-700 text-[11px]">{{ order.domain_name }}</td>
+                    <td class="py-2.5 text-emerald-700 text-[11px]">1 Year</td>
+                    <td class="py-2.5 text-right font-mono font-bold text-emerald-600">FREE</td>
+                </tr>
+                {% endif %}
             </tbody>
         </table>
 

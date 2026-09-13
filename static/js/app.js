@@ -78,7 +78,8 @@ function setBillingCycle(cycle) {
 
     document.querySelectorAll('.plan-order-link').forEach(link => {
         const slug = link.dataset.slug;
-        link.href = `/checkout?plan=${slug}&cycle=${cycle}`;
+        const promoParam = (window.ACTIVE_PROMO_CODE && window.ACTIVE_PROMO_CODE.trim()) ? `&coupon=${encodeURIComponent(window.ACTIVE_PROMO_CODE.trim())}` : '';
+        link.href = `/checkout?plan=${slug}&cycle=${cycle}${promoParam}`;
     });
 }
 

@@ -356,5 +356,66 @@ class TestHostingCartPlatform(unittest.TestCase):
         self.assertEqual(c.fetchone()['status'], 'active')
         conn.close()
 
+    def test_11_hostinger_free_domain_protection(self):
+        """Verify Hostinger-style free domain business rules against profit loss"""
+        # Case 1: 1-Month plan with new .in domain (MUST NOT be free! Domain fee = ₹399)
+        res1 = self.client.post('/api/order/create', json={
+            'plan_id': 2, # Plus Growth
+            'domain_name': 'mytestbrand1month.in',
+            'billing_cycle': 'monthly',
+            'domain_action': 'register',
+            'payment_method': 'UPI_QR',
+            'email': 'buyer1m@test.com'
+        })
+        d1 = res1.get_json()
+        self.assertTrue(d1['success'])
+        self.assertFalse(d1['is_domain_free'])
+        self.assertEqual(d1['domain_fee'], 399.0)
+        self.assertEqual(d1['subtotal'], 119.0)
+
+        # Case 2: 1-Month plan with existing domain (Domain fee = ₹0)
+        res2 = self.client.post('/api/order/create', json={
+            'plan_id': 2,
+            'domain_name': 'alreadyregistered.com',
+            'billing_cycle': 'monthly',
+            'domain_action': 'existing',
+            'payment_method': 'UPI_QR',
+            'email': 'buyer_exist@test.com'
+        })
+        d2 = res2.get_json()
+        self.assertTrue(d2['success'])
+        self.assertFalse(d2['is_domain_free'])
+        self.assertEqual(d2['domain_fee'], 0.0)
+        self.assertEqual(d2['subtotal'], 119.0)
+
+        # Case 3: 12-Month plan with Plan 2 (MUST BE FREE! Domain fee = ₹0)
+        res3 = self.client.post('/api/order/create', json={
+            'plan_id': 2,
+            'domain_name': 'myfreedomain12m.in',
+            'billing_cycle': 'yearly',
+            'domain_action': 'register',
+            'payment_method': 'UPI_QR',
+            'email': 'buyer12m@test.com'
+        })
+        d3 = res3.get_json()
+        self.assertTrue(d3['success'])
+        self.assertTrue(d3['is_domain_free'])
+        self.assertEqual(d3['domain_fee'], 0.0)
+        self.assertEqual(d3['subtotal'], 1428.0)
+
+        # Case 4: 12-Month plan with Single Starter (Plan 1) (MUST NOT be free, free_domain=0)
+        res4 = self.client.post('/api/order/create', json={
+            'plan_id': 1,
+            'domain_name': 'starterdomain.com',
+            'billing_cycle': 'yearly',
+            'domain_action': 'register',
+            'payment_method': 'UPI_QR',
+            'email': 'buyer_starter@test.com'
+        })
+        d4 = res4.get_json()
+        self.assertTrue(d4['success'])
+        self.assertFalse(d4['is_domain_free'])
+        self.assertEqual(d4['domain_fee'], 799.0) # .com regular fee
+
 if __name__ == '__main__':
     unittest.main()

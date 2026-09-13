@@ -31,38 +31,32 @@
                     Deploy your WordPress sites, business portals, and e-commerce stores on high-speed NVMe LiteSpeed servers. 99.99% uptime, free SSL, and a friendly custom hPanel.
                 </p>
 
-                <!-- Urgent Deal Box -->
-                <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-md flex flex-wrap items-center gap-6 max-w-xl">
-                    <div>
-                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Special Offer From</span>
-                        <div class="flex items-baseline gap-1">
-                            <span class="text-3xl font-black text-slate-900">₹49</span>
-                            <span class="text-xs text-slate-500 font-semibold">/month</span>
+                <!-- Real Dynamic Offer Box (Synced with Admin Panel) -->
+                <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-md flex flex-wrap items-center justify-between gap-4 max-w-xl">
+                    <div class="flex items-center gap-5">
+                        <div>
+                            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Plans Starting At</span>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-3xl font-black text-slate-900">₹49</span>
+                                <span class="text-xs text-slate-500 font-semibold">/month</span>
+                            </div>
                         </div>
+
+                        {% if active_promo %}
+                            <div class="h-10 w-px bg-slate-200 hidden sm:block"></div>
+                            <div>
+                                <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full uppercase tracking-wider inline-flex items-center gap-1 mb-1">
+                                    <i data-lucide="tag" class="w-3 h-3 text-emerald-600"></i> {{ active_promo.discount_label }}
+                                </span>
+                                <span class="text-xs font-mono font-bold text-slate-700 block">
+                                    Use Code: <strong class="text-blue-600 font-black">{{ active_promo.code }}</strong>
+                                </span>
+                            </div>
+                        {% endif %}
                     </div>
 
-                    <div class="h-10 w-px bg-slate-200 hidden sm:block"></div>
-
-                    <!-- Countdown Timer -->
-                    <div class="flex items-center gap-2">
-                        <div class="bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl text-center">
-                            <span id="timer-hours" class="text-sm font-extrabold text-orange-600">04</span>
-                            <span class="text-[9px] text-slate-500 block uppercase font-bold">Hours</span>
-                        </div>
-                        <span class="text-slate-400 font-bold">:</span>
-                        <div class="bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl text-center">
-                            <span id="timer-mins" class="text-sm font-extrabold text-orange-600">28</span>
-                            <span class="text-[9px] text-slate-500 block uppercase font-bold">Mins</span>
-                        </div>
-                        <span class="text-slate-400 font-bold">:</span>
-                        <div class="bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl text-center">
-                            <span id="timer-secs" class="text-sm font-extrabold text-orange-600">45</span>
-                            <span class="text-[9px] text-slate-500 block uppercase font-bold">Secs</span>
-                        </div>
-                    </div>
-
-                    <a href="#pricing" class="btn-shimmer ml-auto px-5 py-3 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-extrabold text-xs shadow-md shadow-orange-600/20 transition flex items-center gap-1.5">
-                        <span>Claim Deal</span>
+                    <a href="#pricing" class="btn-shimmer ml-auto px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs shadow-md shadow-blue-600/20 transition flex items-center gap-1.5 flex-shrink-0">
+                        <span>Choose Plan</span>
                         <i data-lucide="arrow-right" class="w-4 h-4"></i>
                     </a>
                 </div>
@@ -219,13 +213,15 @@
                             <span class="text-4xl font-black text-slate-900 plan-price" data-monthly="49" data-yearly="49" data-48m="49">49.00</span>
                             <span class="text-xs text-slate-500 font-semibold">/mo</span>
                         </div>
+                        {% if active_promo %}
                         <div class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg mt-1 mb-2">
-                            <i data-lucide="tag" class="w-3 h-3 text-emerald-600"></i> 'HOSTINGCART' applied
+                            <i data-lucide="tag" class="w-3 h-3 text-emerald-600"></i> Code '{{ active_promo.code }}' ({{ active_promo.discount_label }})
                         </div>
+                        {% endif %}
                     </div>
 
                     <!-- CTA Button -->
-                    <a href="/checkout?plan=single&cycle=48m" class="plan-order-link w-full py-3 rounded-2xl border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-black text-xs text-center block transition shadow-sm mb-3" data-slug="single">
+                    <a href="/checkout?plan=single&cycle=48m{% if active_promo %}&coupon={{ active_promo.code }}{% endif %}" class="plan-order-link w-full py-3 rounded-2xl border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-black text-xs text-center block transition shadow-sm mb-3" data-slug="single">
                         Choose Starter
                     </a>
                     <div class="text-[11px] text-slate-500 mb-6 plan-subtext leading-tight">
@@ -239,8 +235,8 @@
                             <span><strong>1</strong> Website</span>
                         </li>
                         <li class="flex items-center gap-2 text-slate-400">
-                            <i data-lucide="minus" class="w-4 h-4 text-slate-300 flex-shrink-0"></i>
-                            <span>Free Domain</span>
+                            <i data-lucide="x" class="w-4 h-4 text-slate-300 flex-shrink-0"></i>
+                            <span class="line-through text-slate-400">Free Domain</span>
                         </li>
                         <li class="flex items-center gap-2">
                             <i data-lucide="check" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
@@ -287,13 +283,15 @@
                             <span class="text-4xl font-black text-slate-900 plan-price" data-monthly="119" data-yearly="119" data-48m="119">119.00</span>
                             <span class="text-xs text-slate-500 font-semibold">/mo</span>
                         </div>
+                        {% if active_promo %}
                         <div class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg mt-1 mb-2">
-                            <i data-lucide="tag" class="w-3 h-3 text-emerald-600"></i> 'HOSTINGCART' applied
+                            <i data-lucide="tag" class="w-3 h-3 text-emerald-600"></i> Code '{{ active_promo.code }}' ({{ active_promo.discount_label }})
                         </div>
+                        {% endif %}
                     </div>
 
                     <!-- CTA Button -->
-                    <a href="/checkout?plan=premium&cycle=48m" class="plan-order-link w-full py-3 rounded-2xl border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-black text-xs text-center block transition shadow-sm mb-3" data-slug="premium">
+                    <a href="/checkout?plan=premium&cycle=48m{% if active_promo %}&coupon={{ active_promo.code }}{% endif %}" class="plan-order-link w-full py-3 rounded-2xl border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-black text-xs text-center block transition shadow-sm mb-3" data-slug="premium">
                         Choose Plus Growth
                     </a>
                     <div class="text-[11px] text-slate-500 mb-6 plan-subtext leading-tight">
@@ -308,7 +306,7 @@
                         </li>
                         <li class="flex items-center gap-2 font-bold text-orange-600">
                             <i data-lucide="check" class="w-4 h-4 text-orange-600 flex-shrink-0"></i>
-                            <span>Free Domain (.IN or .COM)</span>
+                            <span>Free Domain (.IN or .COM with 12M+)</span>
                         </li>
                         <li class="flex items-center gap-2">
                             <i data-lucide="check" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
@@ -359,13 +357,15 @@
                             <span class="text-4xl font-black text-white plan-price" data-monthly="199" data-yearly="199" data-48m="199">199.00</span>
                             <span class="text-xs text-slate-400 font-semibold">/mo</span>
                         </div>
+                        {% if active_promo %}
                         <div class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-lg mt-1 mb-2">
-                            <i data-lucide="tag" class="w-3 h-3 text-emerald-400"></i> 'HOSTINGCART' applied
+                            <i data-lucide="tag" class="w-3 h-3 text-emerald-400"></i> Code '{{ active_promo.code }}' ({{ active_promo.discount_label }})
                         </div>
+                        {% endif %}
                     </div>
 
                     <!-- CTA Button -->
-                    <a href="/checkout?plan=unlimited&cycle=48m" class="plan-order-link w-full py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs text-center block shadow-lg shadow-blue-600/40 transition mb-3" data-slug="unlimited">
+                    <a href="/checkout?plan=unlimited&cycle=48m{% if active_promo %}&coupon={{ active_promo.code }}{% endif %}" class="plan-order-link w-full py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs text-center block shadow-lg shadow-blue-600/40 transition mb-3" data-slug="unlimited">
                         Get Started Now
                     </a>
                     <div class="text-[11px] text-slate-400 mb-6 plan-subtext leading-tight">
@@ -380,7 +380,7 @@
                         </li>
                         <li class="flex items-center gap-2 font-bold text-orange-400">
                             <i data-lucide="check" class="w-4 h-4 text-orange-400 flex-shrink-0"></i>
-                            <span>Free Domain Included</span>
+                            <span>Free Domain Included (12M & 48M)</span>
                         </li>
                         <li class="flex items-center gap-2">
                             <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
@@ -433,13 +433,15 @@
                             <span class="text-4xl font-black text-slate-900 plan-price" data-monthly="479" data-yearly="479" data-48m="479">479.00</span>
                             <span class="text-xs text-slate-500 font-semibold">/mo</span>
                         </div>
+                        {% if active_promo %}
                         <div class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg mt-1 mb-2">
-                            <i data-lucide="tag" class="w-3 h-3 text-emerald-600"></i> 'HOSTINGCART' applied
+                            <i data-lucide="tag" class="w-3 h-3 text-emerald-600"></i> Code '{{ active_promo.code }}' ({{ active_promo.discount_label }})
                         </div>
+                        {% endif %}
                     </div>
 
                     <!-- CTA Button -->
-                    <a href="/checkout?plan=cloud-startup&cycle=48m" class="plan-order-link w-full py-3 rounded-2xl border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-black text-xs text-center block transition shadow-sm mb-3" data-slug="cloud-startup">
+                    <a href="/checkout?plan=cloud-startup&cycle=48m{% if active_promo %}&coupon={{ active_promo.code }}{% endif %}" class="plan-order-link w-full py-3 rounded-2xl border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-black text-xs text-center block transition shadow-sm mb-3" data-slug="cloud-startup">
                         Choose Enterprise
                     </a>
                     <div class="text-[11px] text-slate-500 mb-6 plan-subtext leading-tight">
@@ -454,7 +456,7 @@
                         </li>
                         <li class="flex items-center gap-2 font-bold text-orange-600">
                             <i data-lucide="check" class="w-4 h-4 text-orange-600 flex-shrink-0"></i>
-                            <span>Free Domain Included</span>
+                            <span>Free Domain Included (12M & 48M)</span>
                         </li>
                         <li class="flex items-center gap-2">
                             <i data-lucide="check" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
@@ -731,6 +733,9 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+    window.ACTIVE_PROMO_CODE = "{% if active_promo %}{{ active_promo.code }}{% endif %}";
+</script>
 <script src="/static/js/app.js"></script>
 <script>
     let selectedRating = 5;

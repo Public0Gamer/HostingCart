@@ -84,12 +84,58 @@ def check_real_domain_availability(domain_name):
 
     return True
 
+import mimetypes
+mimetypes.add_type('image/svg+xml', '.svg')
+mimetypes.add_type('image/svg+xml', '.svgz')
+
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'hostingcart_secret_key_prod_2026_x89f')
 
 # Initialize DB on first load
 with app.app_context():
     init_db()
+
+@app.context_processor
+def inject_global_settings_and_promo():
+    """Injects current branding, settings, and real active storefront promotion into all templates"""
+    active_promo = None
+    settings = {}
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("SELECT key, value FROM server_settings")
+        for r in cursor.fetchall():
+            settings[r['key']] = r['value']
+        
+        # Query active featured coupon (or latest active coupon)
+        cursor.execute("""
+            SELECT * FROM coupons 
+            WHERE active = 1 
+            ORDER BY is_featured DESC, id DESC 
+            LIMIT 1
+        """)
+        promo = cursor.fetchone()
+        if promo:
+            dtype = promo['discount_type'] if 'discount_type' in promo.keys() and promo['discount_type'] else 'percent'
+            dval = float(promo['discount_value']) if 'discount_value' in promo.keys() and promo['discount_value'] else float(promo['discount_percent'])
+            label = f"{int(dval)}% OFF" if dtype == 'percent' else f"₹{int(dval)} OFF"
+            active_promo = {
+                "id": promo['id'],
+                "code": promo['code'],
+                "discount_type": dtype,
+                "discount_value": dval,
+                "discount_label": label,
+                "is_featured": promo['is_featured'] if 'is_featured' in promo.keys() else 1
+            }
+        conn.close()
+    except Exception:
+        pass
+    
+    return {
+        "active_promo": active_promo,
+        "upi_id": settings.get('upi_id', 'pawan8550@naviaxis'),
+        "brand_name": settings.get('brand_name', 'HostingCart')
+    }
 
 @app.before_request
 def track_realtime_traffic():
@@ -581,15 +627,35 @@ def create_order():
             else:
                 discount_amount = round(subtotal * (dval / 100.0), 2)
 
-    base_bill = max(0.0, subtotal - discount_amount)
+    # Hostinger Free Domain Protection Rule:
+    # 1. Single Starter plan NEVER has free domain (plan['free_domain'] == 0)
+    # 2. Plus Growth, Business Pro, Enterprise Cloud only get free domain if billing_cycle in ['yearly', '48m']
+    # 3. 1-Month plan NEVER gets free domain under any circumstances!
+    is_domain_free = (int(plan['free_domain']) == 1 and billing_cycle in ['yearly', '48m'])
+    domain_action = data.get('domain_action', 'register')
+
+    domain_fee = 0.0
+    domain_type = 'new'
+    if domain_action == 'existing':
+        domain_type = 'existing'
+        domain_fee = 0.0
+        wholesale_cost = 0.0
+    else:
+        domain_type = 'new'
+        if is_domain_free:
+            domain_fee = 0.0
+            wholesale_cost = DomainRegistrarClient.get_wholesale_cost(domain_name) if domain_name else 0.0
+        else:
+            # Paid domain registration on 1-month or Single Starter plans
+            domain_fee = 399.0 if (domain_name.endswith('.in') or domain_name.endswith('.co.in')) else 799.0
+            wholesale_cost = DomainRegistrarClient.get_wholesale_cost(domain_name) if domain_name else 0.0
+
+    base_bill = max(0.0, subtotal - discount_amount) + domain_fee
     # Regulatory & Cloud Infrastructure Surcharge: 12%
     regulatory_fee = round(base_bill * 0.12, 2)
     taxable_amount = base_bill + regulatory_fee
     tax_amount = round(taxable_amount * 0.18, 2)
     total_amount = round(taxable_amount + tax_amount, 2)
-
-    # Wholesale registrar domain registry cost & net profit
-    wholesale_cost = DomainRegistrarClient.get_wholesale_cost(domain_name)
     profit_amount = round(max(0.0, total_amount - wholesale_cost), 2)
 
     order_number = f"HW-{datetime.now().strftime('%Y%m%d')}-{''.join(random.choices(string.digits, k=4))}"
@@ -600,9 +666,9 @@ def create_order():
         billing_cycle, subtotal, discount_amount, regulatory_fee,
         tax_amount, total_amount, wholesale_cost, profit_amount,
         payment_method, payment_status
-    ) VALUES (?, ?, ?, ?, 'new', ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
     ''', (
-        order_number, user_id, plan_id, domain_name, billing_cycle,
+        order_number, user_id, plan_id, domain_name, domain_type, billing_cycle,
         subtotal, discount_amount, regulatory_fee, tax_amount,
         total_amount, wholesale_cost, profit_amount, payment_method
     ))
@@ -632,6 +698,8 @@ def create_order():
         "order_id": order_id,
         "order_number": order_number,
         "subtotal": round(subtotal, 2),
+        "domain_fee": round(domain_fee, 2),
+        "is_domain_free": is_domain_free,
         "discount_amount": round(discount_amount, 2),
         "regulatory_fee": round(regulatory_fee, 2),
         "tax_amount": round(tax_amount, 2),
@@ -668,6 +736,45 @@ def get_order_status(order_id):
         "redirect_url": url_for('hpanel') if is_paid else None
     })
 
+def fulfill_paid_order(order_id):
+    """
+    Handles domain registration and server provisioning when an order is marked paid:
+    1. If domain_type != 'existing', registers domain via wholesale registrar API.
+    2. If domain_type == 'existing', wholesale_cost is set to 0.0 and no registrar API call is made.
+    3. Auto-provisions hosting account, creates DNS records, creates welcome backup, and installs WordPress.
+    """
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+    SELECT o.*, u.name as customer_name, u.email as customer_email, u.phone as customer_phone
+    FROM orders o JOIN users u ON o.user_id = u.id WHERE o.id = ?
+    """, (order_id,))
+    ord_info = cursor.fetchone()
+    if ord_info:
+        if ord_info['domain_type'] != 'existing':
+            customer_payload = {
+                'name': ord_info['customer_name'],
+                'email': ord_info['customer_email'],
+                'phone': ord_info['customer_phone']
+            }
+            reg_res = DomainRegistrarClient.register_domain(ord_info['domain_name'], customer_payload)
+            actual_wholesale = reg_res.get('wholesale_cost', ord_info['wholesale_cost'] or 649.0)
+            net_profit = round(ord_info['total_amount'] - actual_wholesale, 2)
+            cursor.execute("UPDATE orders SET wholesale_cost = ?, profit_amount = ? WHERE id = ?", (actual_wholesale, net_profit, order_id))
+            conn.commit()
+        else:
+            cursor.execute("UPDATE orders SET wholesale_cost = 0.0, profit_amount = total_amount WHERE id = ?", (order_id,))
+            conn.commit()
+    conn.close()
+
+    success, msg = auto_provision_order(order_id)
+    conn_wp = get_db()
+    c_wp = conn_wp.cursor()
+    c_wp.execute("UPDATE hosting_accounts SET wordpress_installed = 1 WHERE order_id = ?", (order_id,))
+    conn_wp.commit()
+    conn_wp.close()
+    return success, msg
+
 @app.route('/api/order/verify-utr', methods=['POST'])
 def verify_utr_payment():
     """
@@ -693,28 +800,8 @@ def verify_utr_payment():
     cursor.execute("UPDATE orders SET payment_status = 'paid', paid_at = CURRENT_TIMESTAMP WHERE id = ?", (order_id,))
     conn.commit()
 
-    # Auto Wholesale Domain Registration
-    cursor.execute('''
-    SELECT o.*, u.name as customer_name, u.email as customer_email, u.phone as customer_phone
-    FROM orders o JOIN users u ON o.user_id = u.id WHERE o.id = ?
-    ''', (order_id,))
-    ord_info = cursor.fetchone()
-    if ord_info:
-        customer_payload = {'name': ord_info['customer_name'], 'email': ord_info['customer_email'], 'phone': ord_info['customer_phone']}
-        reg_res = DomainRegistrarClient.register_domain(ord_info['domain_name'], customer_payload)
-        actual_wholesale = reg_res.get('wholesale_cost', ord_info['wholesale_cost'] or 649.0)
-        net_profit = round(ord_info['total_amount'] - actual_wholesale, 2)
-        cursor.execute("UPDATE orders SET wholesale_cost = ?, profit_amount = ? WHERE id = ?", (actual_wholesale, net_profit, order_id))
-        conn.commit()
     conn.close()
-
-    success, msg = auto_provision_order(order_id)
-    # Enable WordPress by default
-    conn_wp = get_db()
-    c_wp = conn_wp.cursor()
-    c_wp.execute("UPDATE hosting_accounts SET wordpress_installed = 1 WHERE order_id = ?", (order_id,))
-    conn_wp.commit()
-    conn_wp.close()
+    success, msg = fulfill_paid_order(order_id)
     log_activity('PAYMENT', f"Payment confirmed (UTR: {utr_number or 'Auto-Scan'}) for #{ord_row['order_number']} ({ord_row['domain_name']})", user_info=f"User #{ord_row['user_id']}")
 
     return jsonify({
@@ -772,27 +859,8 @@ def verify_razorpay_payment():
     cursor.execute("UPDATE orders SET payment_status = 'paid', payment_method = 'RAZORPAY', paid_at = CURRENT_TIMESTAMP WHERE id = ?", (order_id,))
     conn.commit()
 
-    # Auto Wholesale Domain Registration
-    cursor.execute("""
-    SELECT o.*, u.name as customer_name, u.email as customer_email, u.phone as customer_phone
-    FROM orders o JOIN users u ON o.user_id = u.id WHERE o.id = ?
-    """, (order_id,))
-    ord_info = cursor.fetchone()
-    if ord_info:
-        customer_payload = {'name': ord_info['customer_name'], 'email': ord_info['customer_email'], 'phone': ord_info['customer_phone']}
-        reg_res = DomainRegistrarClient.register_domain(ord_info['domain_name'], customer_payload)
-        actual_wholesale = reg_res.get('wholesale_cost', ord_info['wholesale_cost'] or 649.0)
-        net_profit = round(ord_info['total_amount'] - actual_wholesale, 2)
-        cursor.execute("UPDATE orders SET wholesale_cost = ?, profit_amount = ? WHERE id = ?", (actual_wholesale, net_profit, order_id))
-        conn.commit()
     conn.close()
-
-    success, msg = auto_provision_order(order_id)
-    conn_wp = get_db()
-    c_wp = conn_wp.cursor()
-    c_wp.execute("UPDATE hosting_accounts SET wordpress_installed = 1 WHERE order_id = ?", (order_id,))
-    conn_wp.commit()
-    conn_wp.close()
+    success, msg = fulfill_paid_order(order_id)
 
     log_activity('PAYMENT', f"Razorpay Payment Confirmed ({razorpay_payment_id or 'RZP_OK'}) for #{ord_row['order_number']} ({ord_row['domain_name']})", user_info=f"User #{ord_row['user_id']}")
 
@@ -827,26 +895,8 @@ def verify_cashfree_payment():
     cursor.execute("UPDATE orders SET payment_status = 'paid', payment_method = 'CASHFREE', paid_at = CURRENT_TIMESTAMP WHERE id = ?", (order_id,))
     conn.commit()
 
-    cursor.execute("""
-    SELECT o.*, u.name as customer_name, u.email as customer_email, u.phone as customer_phone
-    FROM orders o JOIN users u ON o.user_id = u.id WHERE o.id = ?
-    """, (order_id,))
-    ord_info = cursor.fetchone()
-    if ord_info:
-        customer_payload = {'name': ord_info['customer_name'], 'email': ord_info['customer_email'], 'phone': ord_info['customer_phone']}
-        reg_res = DomainRegistrarClient.register_domain(ord_info['domain_name'], customer_payload)
-        actual_wholesale = reg_res.get('wholesale_cost', ord_info['wholesale_cost'] or 649.0)
-        net_profit = round(ord_info['total_amount'] - actual_wholesale, 2)
-        cursor.execute("UPDATE orders SET wholesale_cost = ?, profit_amount = ? WHERE id = ?", (actual_wholesale, net_profit, order_id))
-        conn.commit()
     conn.close()
-
-    success, msg = auto_provision_order(order_id)
-    conn_wp = get_db()
-    c_wp = conn_wp.cursor()
-    c_wp.execute("UPDATE hosting_accounts SET wordpress_installed = 1 WHERE order_id = ?", (order_id,))
-    conn_wp.commit()
-    conn_wp.close()
+    success, msg = fulfill_paid_order(order_id)
 
     log_activity('PAYMENT', f"Cashfree Payment Confirmed ({cf_payment_id}) for #{ord_row['order_number']} ({ord_row['domain_name']})", user_info=f"User #{ord_row['user_id']}")
 
@@ -876,29 +926,9 @@ def process_payment():
     cursor.execute("UPDATE orders SET payment_status = 'paid', paid_at = CURRENT_TIMESTAMP WHERE id = ?", (order_id,))
     conn.commit()
 
-    # Auto Wholesale Domain Registration
-    cursor.execute('''
-    SELECT o.*, u.name as customer_name, u.email as customer_email, u.phone as customer_phone
-    FROM orders o JOIN users u ON o.user_id = u.id WHERE o.id = ?
-    ''', (order_id,))
-    ord_info = cursor.fetchone()
-    if ord_info:
-        customer_payload = {'name': ord_info['customer_name'], 'email': ord_info['customer_email'], 'phone': ord_info['customer_phone']}
-        reg_res = DomainRegistrarClient.register_domain(ord_info['domain_name'], customer_payload)
-        actual_wholesale = reg_res.get('wholesale_cost', ord_info['wholesale_cost'] or 649.0)
-        net_profit = round(ord_info['total_amount'] - actual_wholesale, 2)
-        cursor.execute("UPDATE orders SET wholesale_cost = ?, profit_amount = ? WHERE id = ?", (actual_wholesale, net_profit, order_id))
-        conn.commit()
     conn.close()
-
-    # Trigger Automated Server Provisioning
-    success, msg = auto_provision_order(order_id)
-    # Enable WordPress by default
-    conn_wp = get_db()
-    c_wp = conn_wp.cursor()
-    c_wp.execute("UPDATE hosting_accounts SET wordpress_installed = 1 WHERE order_id = ?", (order_id,))
-    conn_wp.commit()
-    conn_wp.close()
+    # Trigger Automated Fulfillment & Domain Handling
+    success, msg = fulfill_paid_order(order_id)
     if ord_row:
         log_activity('PAYMENT', f"Payment received & node auto-provisioned for #{ord_row['order_number']} ({ord_row['domain_name']})", user_info=f"User #{ord_row['user_id']}")
 
@@ -1561,10 +1591,11 @@ def admin_create_coupon():
     data = request.get_json() or {}
     code = data.get('code', '').strip().upper()
     discount_type = data.get('discount_type', 'percent') # 'percent' or 'fixed'
+    is_featured = 1 if data.get('is_featured') else 0
     try:
-        discount_value = float(data.get('discount_value', 20))
+        discount_value = float(data.get('discount_value', 10))
     except (ValueError, TypeError):
-        discount_value = 20.0
+        discount_value = 10.0
 
     if not code:
         return jsonify({"success": False, "message": "Coupon code is required."})
@@ -1572,7 +1603,6 @@ def admin_create_coupon():
     if discount_type not in ['percent', 'fixed']:
         discount_type = 'percent'
 
-    # If percentage, limit to 90%
     if discount_type == 'percent' and discount_value > 90:
         discount_value = 90.0
 
@@ -1581,13 +1611,17 @@ def admin_create_coupon():
     conn = get_db()
     cursor = conn.cursor()
     try:
+        if is_featured:
+            cursor.execute("UPDATE coupons SET is_featured = 0")
+
         cursor.execute('''
-        INSERT INTO coupons (code, discount_type, discount_value, discount_percent, active)
-        VALUES (?, ?, ?, ?, 1)
-        ''', (code, discount_type, discount_value, discount_percent_int))
+        INSERT INTO coupons (code, discount_type, discount_value, discount_percent, active, is_featured)
+        VALUES (?, ?, ?, ?, 1, ?)
+        ''', (code, discount_type, discount_value, discount_percent_int, is_featured))
         conn.commit()
         label = f"{int(discount_value)}% OFF" if discount_type == 'percent' else f"Flat ₹{int(discount_value)} OFF"
-        msg = f"Coupon '{code}' successfully created ({label})!"
+        featured_txt = " and set as Featured Storefront Deal!" if is_featured else "!"
+        msg = f"Coupon '{code}' successfully created ({label}){featured_txt}"
         success = True
     except Exception as e:
         msg = "Coupon code already exists or database error."
@@ -1596,6 +1630,57 @@ def admin_create_coupon():
         conn.close()
 
     return jsonify({"success": success, "message": msg})
+
+@app.route('/api/admin/coupon/toggle', methods=['POST'])
+@admin_required
+def admin_toggle_coupon():
+    data = request.get_json() or {}
+    coupon_id = data.get('coupon_id')
+    if not coupon_id:
+        return jsonify({"success": False, "message": "Coupon ID is required."}), 400
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT active, code FROM coupons WHERE id = ?", (coupon_id,))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        return jsonify({"success": False, "message": "Coupon not found."}), 404
+
+    new_active = 0 if row['active'] == 1 else 1
+    if new_active == 0:
+        cursor.execute("UPDATE coupons SET active = 0, is_featured = 0 WHERE id = ?", (coupon_id,))
+    else:
+        cursor.execute("UPDATE coupons SET active = 1 WHERE id = ?", (coupon_id,))
+    conn.commit()
+    conn.close()
+
+    status_str = "activated" if new_active == 1 else "deactivated"
+    return jsonify({"success": True, "active": new_active, "message": f"Coupon '{row['code']}' {status_str} successfully."})
+
+@app.route('/api/admin/coupon/feature', methods=['POST'])
+@admin_required
+def admin_feature_coupon():
+    data = request.get_json() or {}
+    coupon_id = data.get('coupon_id')
+    if not coupon_id:
+        return jsonify({"success": False, "message": "Coupon ID is required."}), 400
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT code FROM coupons WHERE id = ?", (coupon_id,))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        return jsonify({"success": False, "message": "Coupon not found."}), 404
+
+    # Unfeature all, set this coupon as active and featured
+    cursor.execute("UPDATE coupons SET is_featured = 0")
+    cursor.execute("UPDATE coupons SET is_featured = 1, active = 1 WHERE id = ?", (coupon_id,))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"success": True, "message": f"Coupon '{row['code']}' is now the Featured Deal on the storefront banner!"})
 
 @app.route('/api/admin/coupon/delete', methods=['POST'])
 @admin_required
@@ -1657,29 +1742,7 @@ def admin_verify_order_payment():
     conn.close()
 
     if not acc:
-        # Auto Wholesale Domain Registration
-        conn_r = get_db()
-        c_r = conn_r.cursor()
-        c_r.execute('''
-        SELECT o.*, u.name as customer_name, u.email as customer_email, u.phone as customer_phone
-        FROM orders o JOIN users u ON o.user_id = u.id WHERE o.id = ?
-        ''', (order_id,))
-        ord_info = c_r.fetchone()
-        if ord_info:
-            customer_payload = {'name': ord_info['customer_name'], 'email': ord_info['customer_email'], 'phone': ord_info['customer_phone']}
-            reg_res = DomainRegistrarClient.register_domain(ord_info['domain_name'], customer_payload)
-            actual_wholesale = reg_res.get('wholesale_cost', ord_info['wholesale_cost'] or 649.0)
-            net_profit = round(ord_info['total_amount'] - actual_wholesale, 2)
-            c_r.execute("UPDATE orders SET wholesale_cost = ?, profit_amount = ? WHERE id = ?", (actual_wholesale, net_profit, order_id))
-            conn_r.commit()
-        conn_r.close()
-
-        success, prov_msg = auto_provision_order(order_id)
-        conn_wp = get_db()
-        c_wp = conn_wp.cursor()
-        c_wp.execute("UPDATE hosting_accounts SET wordpress_installed = 1 WHERE order_id = ?", (order_id,))
-        conn_wp.commit()
-        conn_wp.close()
+        success, prov_msg = fulfill_paid_order(order_id)
         msg = f"Order #{order['order_number']} verified as PAID! Hosting space & domain for '{order['domain_name']}' automatically provisioned."
     else:
         msg = f"Order #{order['order_number']} marked as PAID."
