@@ -225,6 +225,55 @@ def init_db():
     )
     ''')
 
+    # 14. Customer Files (Cloud Web File Manager)
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS customer_files (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        account_id INTEGER,
+        domain_name TEXT NOT NULL,
+        filename TEXT NOT NULL,
+        file_path TEXT NOT NULL,
+        content TEXT,
+        size_bytes INTEGER DEFAULT 0,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(account_id) REFERENCES hosting_accounts(id)
+    )
+    ''')
+
+    # 15. Customer WordPress Sites
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS wp_sites (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        domain_name TEXT UNIQUE NOT NULL,
+        site_title TEXT NOT NULL,
+        tagline TEXT,
+        template_type TEXT DEFAULT 'business',
+        phone TEXT DEFAULT '+91 9555838550',
+        email TEXT DEFAULT 'contact@hostingcart.in',
+        address TEXT DEFAULT 'Kanpur, India',
+        primary_color TEXT DEFAULT '#4f46e5',
+        hero_headline TEXT,
+        hero_subheadline TEXT,
+        about_text TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    ''')
+
+    # 16. Customer WordPress Posts
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS wp_posts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        domain_name TEXT NOT NULL,
+        title TEXT NOT NULL,
+        slug TEXT NOT NULL,
+        content TEXT NOT NULL,
+        category TEXT DEFAULT 'General',
+        author TEXT DEFAULT 'Admin',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    ''')
+
     conn.commit()
 
     # Seed initial data if plans table is empty
@@ -317,6 +366,78 @@ def log_activity(event_type, description, user_info=None, ip_address=None):
         conn.close()
     except Exception as e:
         print(f"Failed to log activity: {e}")
+
+def seed_customer_default_files(cursor, account_id, domain_name):
+    """Seed initial public_html files (index.html, style.css, app.js, robots.txt) for a hosting account."""
+    clean_dom = domain_name.strip().lower()
+    cursor.execute("SELECT COUNT(*) FROM customer_files WHERE LOWER(domain_name) = ?", (clean_dom,))
+    if cursor.fetchone()[0] > 0:
+        return
+
+    index_html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to {clean_dom}</title>
+    <link rel="stylesheet" href="/site/{clean_dom}/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{ font-family: 'Plus Jakarta Sans', sans-serif; background: #0b0f19; color: #f8fafc; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }}
+        .card {{ background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 48px; max-width: 680px; width: 100%; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }}
+        .badge {{ display: inline-block; padding: 6px 16px; border-radius: 9999px; background: rgba(16, 185, 129, 0.15); color: #34d399; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 24px; border: 1px solid rgba(16, 185, 129, 0.3); }}
+        h1 {{ font-size: 32px; font-weight: 800; line-height: 1.2; margin-bottom: 16px; background: linear-gradient(135deg, #fff 0%, #94a3b8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }}
+        p {{ color: #94a3b8; font-size: 15px; line-height: 1.6; margin-bottom: 32px; }}
+        .btn-group {{ display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }}
+        .btn {{ padding: 12px 24px; border-radius: 12px; font-size: 13px; font-weight: 700; text-decoration: none; transition: all 0.2s; }}
+        .btn-primary {{ background: #4f46e5; color: white; }}
+        .btn-primary:hover {{ background: #4338ca; transform: translateY(-1px); }}
+        .btn-secondary {{ background: #1e293b; color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.1); }}
+        .btn-secondary:hover {{ background: #334155; }}
+        .footer-text {{ margin-top: 32px; font-size: 12px; color: #64748b; }}
+    </style>
+</head>
+<body>
+    <div class="card">
+        <span class="badge">&#9679; Website Live &amp; Operational</span>
+        <h1>Welcome to {clean_dom}</h1>
+        <p>Your cloud hosting account is active on HostingCart. You can now replace this page by uploading your files via the hPanel File Manager or building your site with WordPress.</p>
+        <div class="btn-group">
+            <a href="/hpanel" class="btn btn-primary">Open hPanel File Manager</a>
+            <a href="/site/{clean_dom}/wp-admin" class="btn btn-secondary">Open WordPress Studio</a>
+        </div>
+        <p class="footer-text">Powered by HostingCart LiteSpeed Cloud Infrastructure</p>
+    </div>
+    <script src="/site/{clean_dom}/app.js"></script>
+</body>
+</html>"""
+
+    style_css = f"""/* Custom Stylesheet for {clean_dom} */
+body {{
+    -webkit-font-smoothing: antialiased;
+}}
+"""
+
+    app_js = f"""// Custom JavaScript for {clean_dom}
+console.log('HostingCart Website Node: Loaded successfully for {clean_dom}');
+"""
+
+    robots_txt = """User-agent: *
+Allow: /
+"""
+
+    files = [
+        (account_id, clean_dom, 'index.html', 'public_html/index.html', index_html, len(index_html.encode('utf-8'))),
+        (account_id, clean_dom, 'style.css', 'public_html/style.css', style_css, len(style_css.encode('utf-8'))),
+        (account_id, clean_dom, 'app.js', 'public_html/app.js', app_js, len(app_js.encode('utf-8'))),
+        (account_id, clean_dom, 'robots.txt', 'public_html/robots.txt', robots_txt, len(robots_txt.encode('utf-8'))),
+    ]
+
+    cursor.executemany('''
+    INSERT INTO customer_files (account_id, domain_name, filename, file_path, content, size_bytes)
+    VALUES (?, ?, ?, ?, ?, ?)
+    ''', files)
 
 if __name__ == '__main__':
     init_db()

@@ -26,6 +26,9 @@ class TestHostingCartPlatform(unittest.TestCase):
         cursor.execute(f"DELETE FROM dns_records WHERE account_id IN (SELECT id FROM hosting_accounts WHERE domain_name IN ({placeholders_d}))", test_domains)
         cursor.execute(f"DELETE FROM backups WHERE account_id IN (SELECT id FROM hosting_accounts WHERE domain_name IN ({placeholders_d}))", test_domains)
         cursor.execute(f"DELETE FROM hosting_accounts WHERE domain_name IN ({placeholders_d})", test_domains)
+        cursor.execute(f"DELETE FROM customer_files WHERE domain_name IN ({placeholders_d}) OR domain_name LIKE 'test%'", test_domains)
+        cursor.execute(f"DELETE FROM wp_sites WHERE domain_name IN ({placeholders_d}) OR domain_name LIKE 'test%'", test_domains)
+        cursor.execute(f"DELETE FROM wp_posts WHERE domain_name IN ({placeholders_d}) OR domain_name LIKE 'test%'", test_domains)
         cursor.execute(f"DELETE FROM orders WHERE domain_name IN ({placeholders_d})", test_domains)
         cursor.execute(f"DELETE FROM users WHERE email IN ({placeholders_e})", test_emails)
         cursor.execute("DELETE FROM reviews WHERE email = 'pooja@kanpursilk.com'")
@@ -417,6 +420,75 @@ class TestHostingCartPlatform(unittest.TestCase):
         self.assertTrue(d4['success'])
         self.assertFalse(d4['is_domain_free'])
         self.assertEqual(d4['domain_fee'], 1299.0) # .com regular fee (profitable Option A)
+
+    def test_12_option_b_cloud_engine_and_file_manager(self):
+        """Test Option B Render-Native Engine: File Manager, Code Editor, Subpaths & Database Studio"""
+        test_domain = "optionbtestbrand.in"
+
+        # 1. File Manager: List files (auto-seeds starter files)
+        res_list = self.client.get(f'/api/hpanel/files/list?domain={test_domain}')
+        self.assertEqual(res_list.status_code, 200)
+        data_list = res_list.get_json()
+        self.assertTrue(data_list['success'])
+        self.assertIn('index.html', [f['filename'] for f in data_list['files']])
+
+        # 2. File Manager: Get file content
+        res_get = self.client.get(f'/api/hpanel/files/get?domain={test_domain}&filename=index.html')
+        self.assertEqual(res_get.status_code, 200)
+        data_get = res_get.get_json()
+        self.assertTrue(data_get['success'])
+        self.assertIn('Welcome to', data_get['file']['content'])
+
+        # 3. File Manager: Save customized file
+        custom_code = "<html><body><h1>Live from Option B Cloud Editor!</h1></body></html>"
+        res_save = self.client.post('/api/hpanel/files/save', json={
+            'domain': test_domain,
+            'filename': 'index.html',
+            'content': custom_code
+        })
+        self.assertEqual(res_save.status_code, 200)
+        self.assertTrue(res_save.get_json()['success'])
+
+        # 4. Live Website Serving: custom HTML served
+        res_site = self.client.get(f'/site/{test_domain}')
+        self.assertEqual(res_site.status_code, 200)
+        self.assertIn(b"Live from Option B Cloud Editor!", res_site.data)
+
+        # 5. Live Website Serving: Subpath asset served (style.css)
+        res_css = self.client.get(f'/site/{test_domain}/style.css')
+        self.assertEqual(res_css.status_code, 200)
+        self.assertIn('text/css', res_css.headers.get('Content-Type', ''))
+
+        # 6. Multi-Tenant Router: Host header matches customer domain
+        res_routed = self.client.get('/', headers={'Host': test_domain})
+        self.assertEqual(res_routed.status_code, 200)
+        self.assertIn(b"Live from Option B Cloud Editor!", res_routed.data)
+
+        # 7. Web Database Studio: Tables lookup
+        res_db = self.client.get(f'/api/hpanel/db/tables?domain={test_domain}')
+        self.assertEqual(res_db.status_code, 200)
+        data_db = res_db.get_json()
+        self.assertTrue(data_db['success'])
+        self.assertIn('wp_posts', [t['name'] for t in data_db['tables']])
+
+        # 8. Web Database Studio: Safe SQL Query Runner
+        res_query = self.client.post('/api/hpanel/db/query', json={
+            'domain': test_domain,
+            'query': f"SELECT filename, size_bytes FROM customer_files WHERE domain_name = '{test_domain}'"
+        })
+        self.assertEqual(res_query.status_code, 200)
+        data_query = res_query.get_json()
+        self.assertTrue(data_query['success'])
+        self.assertIn('filename', data_query['columns'])
+
+        # Cleanup test domain
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM customer_files WHERE domain_name = ?", (test_domain,))
+        cursor.execute("DELETE FROM wp_sites WHERE domain_name = ?", (test_domain,))
+        cursor.execute("DELETE FROM wp_posts WHERE domain_name = ?", (test_domain,))
+        conn.commit()
+        conn.close()
 
 if __name__ == '__main__':
     unittest.main()

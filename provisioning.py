@@ -10,7 +10,7 @@ import string
 import requests
 import json
 from datetime import datetime, timedelta
-from models import get_db
+from models import get_db, seed_customer_default_files
 
 def generate_safe_username(domain_name):
     clean = ''.join(c for c in domain_name.split('.')[0] if c.isalnum()).lower()
@@ -267,6 +267,9 @@ def auto_provision_order(order_id):
     INSERT INTO backups (account_id, filename, size_mb)
     VALUES (?, ?, ?)
     ''', (account_id, f"backup_{cpanel_user}_initial.tar.gz", 18.5))
+
+    # Seed Default Website Files (index.html, style.css, app.js, robots.txt)
+    seed_customer_default_files(cursor, account_id, order['domain_name'])
 
     conn.commit()
     conn.close()

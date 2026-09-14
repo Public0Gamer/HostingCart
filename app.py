@@ -14,12 +14,13 @@ from datetime import datetime, timedelta
 from functools import wraps
 import platform
 import psutil
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash, send_file
+import mimetypes
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash, send_file, Response
 import io
 import tarfile
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from models import init_db, get_db, log_activity
+from models import init_db, get_db, log_activity, seed_customer_default_files
 from provisioning import auto_provision_order, get_server_adapter, MockServerAdapter, generate_strong_password, test_server_connection
 from lifecycle import run_lifecycle_checks, reactivate_account
 from registrar import DomainRegistrarClient
@@ -146,7 +147,7 @@ def track_realtime_traffic():
     path = request.path
     if (path.startswith('/static/') or 
         path.startswith('/api/admin/system/metrics') or 
-        path == '/favicon.ico'):
+        path in ('/favicon.ico', '/ping', '/healthz')):
         return
 
     try:
@@ -235,8 +236,63 @@ def inject_global_data():
     }
 
 # ==========================================
-# PUBLIC STOREFRONT ROUTES
+# MULTI-TENANT CLOUD ROUTER (Option B Engine)
 # ==========================================
+@app.before_request
+def multi_tenant_router():
+    """
+    Directs incoming traffic based on the Host header.
+    If the host is a customer's custom domain (pointing to Render via CNAME or A-Record):
+    Serve that customer's website files/WordPress sandbox automatically.
+    """
+    raw_host = request.host.split(':')[0].strip().lower()
+    path = request.path
+
+    # Allow internal endpoints, static files, and platform domains to pass
+    PLATFORM_HOSTS = {'localhost', '127.0.0.1', 'hostingcart.onrender.com', 'testserver'}
+    if raw_host in PLATFORM_HOSTS or raw_host.endswith('.local') or raw_host.endswith('.onrender.com'):
+        return None
+
+    # Static assets, keepalive pings bypass routing
+    if path.startswith('/static/') or path in ('/ping', '/healthz'):
+        return None
+
+    # Check if raw_host is a registered customer domain
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, domain_name FROM hosting_accounts WHERE LOWER(domain_name) = ? OR LOWER(domain_name) = ? LIMIT 1",
+                       (raw_host, raw_host.removeprefix('www.')))
+        acc = cursor.fetchone()
+        if not acc:
+            cursor.execute("SELECT id, domain_name FROM wp_sites WHERE LOWER(domain_name) = ? OR LOWER(domain_name) = ? LIMIT 1",
+                           (raw_host, raw_host.removeprefix('www.')))
+            acc = cursor.fetchone()
+        if not acc:
+            cursor.execute("SELECT id, domain_name FROM customer_files WHERE LOWER(domain_name) = ? OR LOWER(domain_name) = ? LIMIT 1",
+                           (raw_host, raw_host.removeprefix('www.')))
+            acc = cursor.fetchone()
+        conn.close()
+
+        if acc:
+            domain = acc['domain_name']
+            if path == '/wp-admin' or path.startswith('/wp-admin/'):
+                return site_wp_admin(domain)
+            if path.startswith('/api/site/'):
+                return None  # Let standard API endpoints handle it
+            subpath = path.lstrip('/')
+            return site_preview(domain, subpath=subpath)
+    except Exception as e:
+        print(f"Multi-tenant routing error for {raw_host}: {e}")
+
+    return None
+
+# ==========================================
+@app.route('/ping')
+@app.route('/healthz')
+def ping_health():
+    return jsonify({"status": "healthy", "service": "HostingCart", "time": datetime.now().isoformat()}), 200
+
 @app.route('/')
 def index():
     conn = get_db()
@@ -1996,15 +2052,32 @@ def get_or_create_wp_site(domain_name):
     return site
 
 @app.route('/site/<domain_name>')
-def site_preview(domain_name):
+@app.route('/site/<domain_name>/')
+@app.route('/site/<domain_name>/<path:subpath>')
+def site_preview(domain_name, subpath=""):
     clean_dom = domain_name.strip().lower()
-    site = get_or_create_wp_site(clean_dom)
 
+    # 1. Handle direct subpath file requests (e.g. style.css, app.js, robots.txt, custom pages)
+    if subpath:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT content, filename FROM customer_files 
+            WHERE LOWER(domain_name) = ? AND (filename = ? OR file_path = ? OR file_path = ?)
+            LIMIT 1
+        """, (clean_dom, subpath, f"public_html/{subpath}", subpath))
+        file_row = cursor.fetchone()
+        conn.close()
+
+        if file_row and file_row['content'] is not None:
+            mimetype, _ = mimetypes.guess_type(subpath)
+            if not mimetype:
+                mimetype = 'text/css' if subpath.endswith('.css') else ('application/javascript' if subpath.endswith('.js') else 'text/plain')
+            return Response(file_row['content'], mimetype=mimetype)
+
+    # 2. Root domain request
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM wp_posts WHERE LOWER(domain_name) = ? ORDER BY id DESC LIMIT 10", (clean_dom,))
-    posts = cursor.fetchall()
-    
     cursor.execute('''
     SELECT ha.*, p.name as plan_name, u.name as client_name
     FROM hosting_accounts ha
@@ -2013,7 +2086,17 @@ def site_preview(domain_name):
     WHERE LOWER(ha.domain_name) = ?
     ORDER BY ha.id DESC LIMIT 1
     ''', (clean_dom,))
-    account = cursor.fetchone()
+    acc_row = cursor.fetchone()
+    account = dict(acc_row) if acc_row else None
+
+    # Check if custom index.html exists in customer_files
+    cursor.execute("""
+        SELECT content FROM customer_files 
+        WHERE LOWER(domain_name) = ? AND filename = 'index.html'
+        LIMIT 1
+    """, (clean_dom,))
+    idx_row = cursor.fetchone()
+    index_file = dict(idx_row) if idx_row else None
     conn.close()
 
     if not account:
@@ -2022,13 +2105,270 @@ def site_preview(domain_name):
             'server_ip': '152.58.156.166',
             'status': 'active',
             'ssl_active': 1,
-            'wordpress_installed': 1,
+            'wordpress_installed': 0,
             'wordpress_version': '6.6.1',
             'plan_name': 'Premium Web Hosting',
             'client_name': 'Valued Customer'
         }
 
+    # If WordPress is NOT active AND custom index.html exists, serve custom index.html directly
+    force_wp = request.args.get('mode') == 'wp'
+    if (not account.get('wordpress_installed') or not bool(account['wordpress_installed'])) and index_file and index_file.get('content') and not force_wp:
+        return Response(index_file['content'], mimetype='text/html')
+
+    # Otherwise serve dynamic WordPress site engine
+    site = get_or_create_wp_site(clean_dom)
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM wp_posts WHERE LOWER(domain_name) = ? ORDER BY id DESC LIMIT 10", (clean_dom,))
+    posts = cursor.fetchall()
+    conn.close()
+
     return render_template('site_wp_preview.html', account=account, site=site, posts=posts)
+
+# ==========================================
+# HPANEL CLOUD FILE MANAGER APIS (Option B)
+# ==========================================
+@app.route('/api/hpanel/files/list', methods=['GET', 'POST'])
+def api_hpanel_files_list():
+    domain = request.args.get('domain') or (request.get_json() or {}).get('domain', '')
+    domain = domain.strip().lower()
+
+    conn = get_db()
+    cursor = conn.cursor()
+    account_id = None
+    if not domain and 'user_id' in session:
+        cursor.execute("SELECT domain_name, id FROM hosting_accounts WHERE user_id = ? ORDER BY id DESC LIMIT 1", (session['user_id'],))
+        acc = cursor.fetchone()
+        if acc:
+            domain = acc['domain_name']
+            account_id = acc['id']
+        else:
+            conn.close()
+            return jsonify({"success": False, "message": "No hosting account found."}), 404
+    else:
+        cursor.execute("SELECT id FROM hosting_accounts WHERE LOWER(domain_name) = ? LIMIT 1", (domain,))
+        acc = cursor.fetchone()
+        account_id = acc['id'] if acc else None
+
+    if not domain:
+        conn.close()
+        return jsonify({"success": False, "message": "Domain parameter is required."}), 400
+
+    # Ensure starter files exist in cloud storage
+    seed_customer_default_files(cursor, account_id, domain)
+    conn.commit()
+
+    cursor.execute("""
+        SELECT id, filename, file_path, size_bytes, updated_at 
+        FROM customer_files 
+        WHERE LOWER(domain_name) = ? 
+        ORDER BY filename ASC
+    """, (domain,))
+    files = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+
+    return jsonify({
+        "success": True,
+        "domain": domain,
+        "base_path": f"/home/u_{domain.split('.')[0][:6]}/public_html",
+        "files": files
+    })
+
+@app.route('/api/hpanel/files/get', methods=['GET'])
+def api_hpanel_files_get():
+    domain = request.args.get('domain', '').strip().lower()
+    filename = request.args.get('filename', '').strip()
+    if not domain or not filename:
+        return jsonify({"success": False, "message": "Domain and filename are required."}), 400
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id, domain_name, filename, file_path, content, size_bytes, updated_at 
+        FROM customer_files 
+        WHERE LOWER(domain_name) = ? AND filename = ?
+        LIMIT 1
+    """, (domain, filename))
+    row = cursor.fetchone()
+    conn.close()
+
+    if not row:
+        return jsonify({"success": False, "message": f"File '{filename}' not found."}), 404
+
+    return jsonify({
+        "success": True,
+        "file": dict(row)
+    })
+
+@app.route('/api/hpanel/files/save', methods=['POST'])
+def api_hpanel_files_save():
+    data = request.get_json() or {}
+    domain = data.get('domain', '').strip().lower()
+    filename = data.get('filename', '').strip()
+    content = data.get('content', '')
+
+    if not domain or not filename:
+        return jsonify({"success": False, "message": "Domain and filename are required."}), 400
+
+    size_bytes = len(content.encode('utf-8'))
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE customer_files 
+        SET content = ?, size_bytes = ?, updated_at = CURRENT_TIMESTAMP 
+        WHERE LOWER(domain_name) = ? AND filename = ?
+    """, (content, size_bytes, domain, filename))
+
+    if cursor.rowcount == 0:
+        cursor.execute("""
+            INSERT INTO customer_files (domain_name, filename, file_path, content, size_bytes)
+            VALUES (?, ?, ?, ?, ?)
+        """, (domain, filename, f"public_html/{filename}", content, size_bytes))
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        "success": True,
+        "message": f"'{filename}' saved successfully to your cloud server node!",
+        "size_bytes": size_bytes
+    })
+
+@app.route('/api/hpanel/files/create', methods=['POST'])
+def api_hpanel_files_create():
+    data = request.get_json() or {}
+    domain = data.get('domain', '').strip().lower()
+    filename = data.get('filename', '').strip()
+    initial_content = data.get('content', '')
+
+    if not domain or not filename:
+        return jsonify({"success": False, "message": "Domain and filename are required."}), 400
+
+    filename = re.sub(r'[^a-zA-Z0-9_\.-]', '', filename)
+    if not filename:
+        return jsonify({"success": False, "message": "Invalid filename."}), 400
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM customer_files WHERE LOWER(domain_name) = ? AND filename = ?", (domain, filename))
+    if cursor.fetchone():
+        conn.close()
+        return jsonify({"success": False, "message": f"File '{filename}' already exists."}), 400
+
+    size_bytes = len(initial_content.encode('utf-8'))
+    cursor.execute("""
+        INSERT INTO customer_files (domain_name, filename, file_path, content, size_bytes)
+        VALUES (?, ?, ?, ?, ?)
+    """, (domain, filename, f"public_html/{filename}", initial_content, size_bytes))
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        "success": True,
+        "message": f"File '{filename}' created in /public_html successfully!"
+    })
+
+@app.route('/api/hpanel/files/delete', methods=['POST'])
+def api_hpanel_files_delete():
+    data = request.get_json() or {}
+    domain = data.get('domain', '').strip().lower()
+    filename = data.get('filename', '').strip()
+
+    if not domain or not filename:
+        return jsonify({"success": False, "message": "Domain and filename are required."}), 400
+
+    if filename == 'index.html':
+        return jsonify({"success": False, "message": "Primary index.html cannot be deleted. You can edit its content."}), 400
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM customer_files WHERE LOWER(domain_name) = ? AND filename = ?", (domain, filename))
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        "success": True,
+        "message": f"File '{filename}' removed from cloud server."
+    })
+
+# ==========================================
+# HPANEL CLOUD DATABASE STUDIO APIS (Option B)
+# ==========================================
+@app.route('/api/hpanel/db/tables', methods=['GET'])
+def api_hpanel_db_tables():
+    domain = request.args.get('domain', '').strip().lower()
+    if not domain and 'user_id' in session:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("SELECT domain_name FROM hosting_accounts WHERE user_id = ? ORDER BY id DESC LIMIT 1", (session['user_id'],))
+        acc = cursor.fetchone()
+        conn.close()
+        if acc:
+            domain = acc['domain_name']
+
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    tables = [
+        {"name": "wp_posts", "records": 0, "type": "WordPress Content"},
+        {"name": "wp_sites", "records": 0, "type": "Site Configuration"},
+        {"name": "customer_files", "records": 0, "type": "Web File Storage"},
+        {"name": "dns_records", "records": 0, "type": "Cloudflare / DNS Zone"}
+    ]
+
+    try:
+        cursor.execute("SELECT COUNT(*) FROM wp_posts WHERE LOWER(domain_name) = ?", (domain,))
+        tables[0]["records"] = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM wp_sites WHERE LOWER(domain_name) = ?", (domain,))
+        tables[1]["records"] = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM customer_files WHERE LOWER(domain_name) = ?", (domain,))
+        tables[2]["records"] = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM dns_records WHERE account_id IN (SELECT id FROM hosting_accounts WHERE LOWER(domain_name) = ?)", (domain,))
+        tables[3]["records"] = cursor.fetchone()[0]
+    except Exception as e:
+        print(f"DB tables count error: {e}")
+    conn.close()
+
+    db_name = f"wp_{''.join(c for c in domain.split('.')[0] if c.isalnum())[:8]}_prod"
+    return jsonify({
+        "success": True,
+        "db_name": db_name,
+        "db_user": f"u_{domain.split('.')[0][:6]}",
+        "db_host": "localhost:3306 (LiteSpeed NVMe Socket)",
+        "tables": tables
+    })
+
+@app.route('/api/hpanel/db/query', methods=['POST'])
+def api_hpanel_db_query():
+    data = request.get_json() or {}
+    domain = data.get('domain', '').strip().lower()
+    raw_query = data.get('query', '').strip()
+
+    if not raw_query:
+        return jsonify({"success": False, "message": "Query cannot be empty."}), 400
+
+    if not raw_query.lower().startswith('select'):
+        return jsonify({"success": False, "message": "Only safe SELECT queries are permitted in Web Database Studio for security."}), 403
+
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(raw_query)
+        rows = cursor.fetchall()
+        columns = [d[0] for d in cursor.description] if cursor.description else []
+        result_rows = [[str(col) for col in row] for row in rows[:25]]
+        conn.close()
+        return jsonify({
+            "success": True,
+            "columns": columns,
+            "rows": result_rows,
+            "total_count": len(rows)
+        })
+    except Exception as e:
+        conn.close()
+        return jsonify({"success": False, "message": f"SQL Syntax Error: {str(e)}"}), 400
 
 @app.route('/site/<domain_name>/wp-admin')
 def site_wp_admin(domain_name):
