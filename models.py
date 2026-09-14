@@ -8,13 +8,17 @@ import json
 import secrets
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
+import turso_db as sqlite3
 
-DB_PATH = os.path.join(os.path.dirname(__file__), 'apexhost.db')
+TURSO_URL = os.getenv("TURSO_URL", "libsql://apexhost-db-public0gamer.aws-ap-south-1.turso.io")
+TURSO_TOKEN = os.getenv("TURSO_TOKEN", "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODk0MDkyNzIsImlkIjoiMDFhMGExMTktZWMwMS03ZTg4LTkyNWUtOTUzODNmM2YxMWExIiwia2lkIjoiVUgyM0NGSTZFaTFmVlVwQ3dzOUlnTDZjR3R6REpMR2lKby1xeGJPUjhEQSIsInJpZCI6IjFiNDdlZjgxLWRmZWEtNDhhYi04YzgyLTQwZDYwYmEyY2Q4MSJ9._Zvwg006u3eBp-XYfP-p1iSjMRzh4QdvOoHmCI2USNtFoGHAj5ouSC7xIuu1ePmQ-1U9YhzRMbDx1mgpF8CaCg")
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
+    conn = sqlite3.connect(TURSO_URL, TURSO_TOKEN)
     return conn
+
+def get_db_connection():
+    return get_db()
 
 def init_db():
     conn = get_db()
