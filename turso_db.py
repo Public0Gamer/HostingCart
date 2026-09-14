@@ -2,10 +2,37 @@ import requests
 import json
 import sqlite3
 
-class TursoRow(dict):
-    """Mimics sqlite3.Row"""
+class TursoRow:
+    """Mimics sqlite3.Row - acts like a tuple but allows dict-like and attribute access."""
+    def __init__(self, cols, values):
+        self._cols = cols
+        self._values = tuple(values)
+        self._col_map = {col.lower(): i for i, col in enumerate(cols)}
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return self._values[key]
+        if isinstance(key, str):
+            idx = self._col_map.get(key.lower())
+            if idx is not None:
+                return self._values[idx]
+            raise KeyError(key)
+        raise TypeError("Index must be int or string")
+
     def __getattr__(self, name):
-        return self[name]
+        try:
+            return self[name]
+        except KeyError:
+            raise AttributeError(name)
+
+    def __iter__(self):
+        return iter(self._values)
+
+    def __len__(self):
+        return len(self._values)
+
+    def keys(self):
+        return self._cols
 
 class TursoCursor:
     def __init__(self, conn):
@@ -24,7 +51,6 @@ class TursoCursor:
 
     def _execute_stmt(self, query, params=None):
         if params:
-            # Replace ? with ? in query, but Turso API expects positional args array
             args = []
             if isinstance(params, (tuple, list)):
                 for p in params:
@@ -37,8 +63,7 @@ class TursoCursor:
                     else:
                         args.append({"type": "text", "value": str(p)})
             else:
-                # dictionary params - Turso also supports named
-                pass # For simplicity, models.py uses ? tuple/list params
+                pass
             stmt = {"sql": query, "args": args}
         else:
             stmt = {"sql": query}
@@ -50,7 +75,7 @@ class TursoCursor:
             ]
         }
         try:
-            resp = requests.post(self.conn.url, headers=self.conn.headers, json=payload, timeout=10)
+            resp = requests.post(self.conn.url, headers=self.conn.headers, json=payload, timeout=20)
             if resp.status_code != 200:
                 print(f"HTTP ERROR: {resp.status_code}")
                 print(resp.text)
@@ -65,7 +90,7 @@ class TursoCursor:
             
             parsed_rows = []
             for row in res["rows"]:
-                row_dict = TursoRow()
+                values = []
                 for i, col in enumerate(cols):
                     val = row[i].get("value")
                     val_type = row[i].get("type")
@@ -75,13 +100,8 @@ class TursoCursor:
                         val = float(val) if val else 0.0
                     elif val_type == "null":
                         val = None
-                    row_dict[col] = val
-                
-                # Also allow index-based access
-                for i, col in enumerate(cols):
-                    row_dict[i] = row_dict[col]
-                    
-                parsed_rows.append(row_dict)
+                    values.append(val)
+                parsed_rows.append(TursoRow(cols, values))
             
             self._rows = parsed_rows
             self.lastrowid = res.get("last_insert_rowid")
@@ -105,7 +125,6 @@ class TursoCursor:
 
 class TursoConnection:
     def __init__(self, db_url, auth_token):
-        # ensure url ends with /v2/pipeline
         if not db_url.endswith("/v2/pipeline"):
             if db_url.startswith("libsql://"):
                 db_url = db_url.replace("libsql://", "https://")
