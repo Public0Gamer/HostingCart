@@ -385,14 +385,33 @@ def login():
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
+        ip = request.headers.get('CF-Connecting-IP') or request.headers.get('X-Forwarded-For') or request.remote_addr
+        if ip and ',' in ip: ip = ip.split(',')[0].strip()
+        ip = ip or '127.0.0.1'
 
         conn = get_db()
         cursor = conn.cursor()
+        
+        # Check brute-force lockout
+        cursor.execute("SELECT attempts, lockout_until FROM login_attempts WHERE ip_address = ? AND email = ?", (ip, email))
+        attempt_record = cursor.fetchone()
+        
+        if attempt_record and attempt_record['lockout_until']:
+            lockout_time = datetime.strptime(attempt_record['lockout_until'], '%Y-%m-%d %H:%M:%S')
+            if datetime.utcnow() < lockout_time:
+                conn.close()
+                flash('Too many failed attempts. Try again in 15 minutes.', 'danger')
+                return render_template('login.html')
+
         cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
         user = cursor.fetchone()
-        conn.close()
 
         if user and check_password_hash(user['password_hash'], password):
+            # Reset attempts on success
+            cursor.execute("DELETE FROM login_attempts WHERE ip_address = ? AND email = ?", (ip, email))
+            conn.commit()
+            conn.close()
+
             session['user_id'] = user['id']
             session['user_name'] = user['name']
             session['user_email'] = user['email']
@@ -404,9 +423,96 @@ def login():
                 return redirect(next_url)
             return redirect(url_for('admin_dashboard' if user['role'] == 'admin' else 'hpanel'))
         else:
+            # Increment attempts on failure
+            if attempt_record:
+                attempts = attempt_record['attempts'] + 1
+                lockout = (datetime.utcnow() + timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S') if attempts >= 5 else None
+                cursor.execute("UPDATE login_attempts SET attempts = ?, lockout_until = ?, last_attempt = CURRENT_TIMESTAMP WHERE ip_address = ? AND email = ?", 
+                               (attempts, lockout, ip, email))
+            else:
+                cursor.execute("INSERT INTO login_attempts (ip_address, email, attempts) VALUES (?, ?, 1)", (ip, email))
+            conn.commit()
+            conn.close()
+            
             flash('Invalid email or password. Please try again.', 'danger')
 
     return render_template('login.html')
+
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip().lower()
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
+        user = cursor.fetchone()
+        
+        if user:
+            # Generate secure token
+            token = secrets.token_urlsafe(32)
+            expiry = (datetime.utcnow() + timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S')
+            
+            cursor.execute("INSERT INTO password_resets (email, token, expiry) VALUES (?, ?, ?)", (email, token, expiry))
+            conn.commit()
+            
+            from mailer import send_password_reset_email
+            reset_link = f"{request.host_url.rstrip('/')}/reset-password/{token}"
+            send_password_reset_email(email, reset_link)
+            log_activity('PASSWORD_RESET_REQUEST', f"Password reset requested for {email}")
+            
+        conn.close()
+        # Always show the same success message to prevent email enumeration
+        flash('If an account exists with that email, a secure reset link has been sent.', 'success')
+        return redirect(url_for('login'))
+        
+    return render_template('forgot_password.html')
+
+@app.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Verify token
+    cursor.execute("SELECT * FROM password_resets WHERE token = ? AND used = 0", (token,))
+    reset_record = cursor.fetchone()
+    
+    if not reset_record:
+        conn.close()
+        flash('Invalid or expired reset link.', 'danger')
+        return redirect(url_for('forgot_password'))
+        
+    expiry_time = datetime.strptime(reset_record['expiry'], '%Y-%m-%d %H:%M:%S')
+    if datetime.utcnow() > expiry_time:
+        conn.close()
+        flash('This reset link has expired. Please request a new one.', 'danger')
+        return redirect(url_for('forgot_password'))
+        
+    if request.method == 'POST':
+        password = request.form.get('password')
+        confirm = request.form.get('confirm_password')
+        
+        if len(password) < 8:
+            flash('Password must be at least 8 characters long.', 'danger')
+            return render_template('reset_password.html', token=token)
+            
+        if password != confirm:
+            flash('Passwords do not match.', 'danger')
+            return render_template('reset_password.html', token=token)
+            
+        pw_hash = generate_password_hash(password)
+        email = reset_record['email']
+        
+        cursor.execute("UPDATE users SET password_hash = ? WHERE email = ?", (pw_hash, email))
+        cursor.execute("UPDATE password_resets SET used = 1 WHERE token = ?", (token,))
+        conn.commit()
+        conn.close()
+        
+        log_activity('PASSWORD_RESET_SUCCESS', f"Password successfully reset for {email}")
+        flash('Your password has been successfully reset. You can now log in.', 'success')
+        return redirect(url_for('login'))
+        
+    conn.close()
+    return render_template('reset_password.html', token=token)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():

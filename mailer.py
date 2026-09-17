@@ -210,3 +210,60 @@ def send_order_welcome_email(order_id, base_url="https://hostingcart.onrender.co
     """
     t = threading.Thread(target=_dispatch_order_email_worker, args=(order_id, base_url), daemon=True)
     t.start()
+
+def _dispatch_password_reset_email(to_email, reset_link):
+    try:
+        cfg = get_smtp_settings()
+        if not cfg["host"] or not cfg["user"] or not cfg["password"]:
+            log_activity('EMAIL_NOTICE', f"SMTP not configured. Password Reset link generated: {reset_link}")
+            print(f"SMTP NOT CONFIGURED. Reset link: {reset_link}")
+            return
+
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = f"Password Reset Request - {cfg['brand_name']}"
+        msg["From"] = f"{cfg['brand_name']} Security <{cfg['from_email']}>"
+        msg["To"] = to_email
+
+        html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <style>
+                body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f1f5f9; padding: 20px; }}
+                .card {{ max-width: 500px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 30px; border: 1px solid #e2e8f0; }}
+                .btn {{ display: inline-block; background: #4f46e5; color: #ffffff !important; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin: 20px 0; }}
+            </style>
+        </head>
+        <body>
+            <div class="card">
+                <h2 style="margin-top:0;">Password Reset Request</h2>
+                <p>Hello,</p>
+                <p>We received a request to reset the password for your {cfg['brand_name']} account. If you did not make this request, you can safely ignore this email.</p>
+                <p>Click the button below to securely set a new password. This link will expire in 15 minutes.</p>
+                <div style="text-align: center;">
+                    <a href="{reset_link}" class="btn">Reset My Password</a>
+                </div>
+                <p style="font-size: 12px; color: #64748b;">Or copy this link: {reset_link}</p>
+            </div>
+        </body>
+        </html>
+        """
+        msg.attach(MIMEText(html, "html"))
+
+        if cfg["port"] == 465:
+            server = smtplib.SMTP_SSL(cfg["host"], cfg["port"], timeout=15)
+        else:
+            server = smtplib.SMTP(cfg["host"], cfg["port"], timeout=15)
+            server.starttls()
+            
+        server.login(cfg["user"], cfg["password"])
+        server.sendmail(cfg["from_email"], [to_email], msg.as_string())
+        server.quit()
+        log_activity('EMAIL_SUCCESS', f"Password reset email sent to {to_email}")
+    except Exception as e:
+        log_activity('EMAIL_FAILED', f"Failed to send password reset email to {to_email}: {e}")
+
+def send_password_reset_email(to_email, reset_link):
+    t = threading.Thread(target=_dispatch_password_reset_email, args=(to_email, reset_link), daemon=True)
+    t.start()

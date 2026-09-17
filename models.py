@@ -59,6 +59,30 @@ def init_db():
     )
     ''')
 
+    # 3. Password Resets table
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS password_resets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT NOT NULL,
+        token TEXT UNIQUE NOT NULL,
+        expiry TIMESTAMP NOT NULL,
+        used INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    ''')
+
+    # 4. Login Attempts table for Brute-force protection
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS login_attempts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        ip_address TEXT NOT NULL,
+        email TEXT NOT NULL,
+        attempts INTEGER DEFAULT 1,
+        lockout_until TIMESTAMP,
+        last_attempt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    ''')
+
     # 3. Coupons table
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS coupons (
