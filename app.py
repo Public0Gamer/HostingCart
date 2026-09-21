@@ -1774,32 +1774,49 @@ def admin_account_details(account_id):
 @app.route('/api/admin/clean-demo-accounts', methods=['POST'])
 @admin_required
 def admin_clean_demo_accounts():
+    """Nuclear Wipe: Clears ALL orders, hosting accounts, customers, and logs. Perfect for a clean business launch."""
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('''
-    DELETE FROM hosting_accounts 
-    WHERE domain_name IN ('testbrandindia.in', 'kanpurnewtech.in', 'liveverifytest.in')
-       OR cpanel_username LIKE 'u_testbr%' 
-       OR cpanel_username LIKE 'u_kanpur%'
-       OR cpanel_username LIKE 'u_liveve%'
-    ''')
+    
+    # 1. Delete all DNS records and Backups
+    cursor.execute('DELETE FROM dns_records')
+    cursor.execute('DELETE FROM backups')
+    
+    # 2. Delete all customer files
+    cursor.execute('DELETE FROM customer_files')
+    
+    # 3. Delete all hosting accounts
+    cursor.execute('DELETE FROM hosting_accounts')
     del_acc = cursor.rowcount
-
-    cursor.execute('''
-    DELETE FROM orders 
-    WHERE domain_name IN ('testbrandindia.in', 'kanpurnewtech.in', 'liveverifytest.in')
-    ''')
+    
+    # 4. Delete all orders and invoices
+    cursor.execute('DELETE FROM orders')
+    cursor.execute('DELETE FROM invoices')
     del_ord = cursor.rowcount
-
-    cursor.execute('''
-    DELETE FROM users 
-    WHERE email IN ('buyer@testbrand.com', 'rohit@kanpurnewtech.in', 'verifytest@brand.in')
-    ''')
+    
+    # 5. Delete all Support Tickets and Messages
+    cursor.execute('DELETE FROM support_messages')
+    cursor.execute('DELETE FROM support_tickets')
+    
+    # 6. Delete all activity logs and visitors
+    cursor.execute('DELETE FROM activity_logs')
+    cursor.execute('DELETE FROM visitor_traffic')
+    
+    # 7. Delete all users EXCEPT the admin
+    cursor.execute("DELETE FROM users WHERE role != 'admin'")
+    
+    # 8. Reset sqlite autoincrement sequences to 0 for a fresh start
+    try:
+        cursor.execute("DELETE FROM sqlite_sequence WHERE name IN ('orders', 'hosting_accounts', 'invoices', 'users', 'activity_logs')")
+    except:
+        pass
+        
     conn.commit()
     conn.close()
-
-    log_activity('ADMIN', f"Admin cleared {del_acc} demo accounts and {del_ord} demo orders.")
-    return jsonify({"success": True, "message": f"Cleaned {del_acc} demo test accounts!"})
+    
+    log_activity('SYSTEM_RESET', f"Admin executed Nuclear Wipe for Production Launch. Cleared {del_acc} hosting accounts and {del_ord} orders.")
+    
+    return jsonify({"success": True, "message": f"Business successfully reset! Wiped {del_acc} hosting nodes and {del_ord} orders. Ready for REAL launch."})
 
 @app.route('/api/admin/coupon/create', methods=['POST'])
 @admin_required
