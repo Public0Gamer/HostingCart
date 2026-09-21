@@ -188,7 +188,7 @@ def _dispatch_order_email_worker(order_id, base_url):
         </body>
         </html>
         """
-        msg.attach(MIMEText(html, "html"))
+        msg.attach(MIMEText(html, "html", "utf-8"))
 
         if cfg["port"] == 465:
             server = smtplib.SMTP_SSL(cfg["host"], cfg["port"], timeout=15)
@@ -249,7 +249,7 @@ def _dispatch_password_reset_email(to_email, reset_link):
         </body>
         </html>
         """
-        msg.attach(MIMEText(html, "html"))
+        msg.attach(MIMEText(html, "html", "utf-8"))
 
         if cfg["port"] == 465:
             server = smtplib.SMTP_SSL(cfg["host"], cfg["port"], timeout=15)
