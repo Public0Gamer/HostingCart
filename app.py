@@ -21,7 +21,7 @@ import tarfile
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from models import init_db, get_db, log_activity, seed_customer_default_files
-from provisioning import auto_provision_order, get_server_adapter, MockServerAdapter, generate_strong_password, test_server_connection
+from provisioning import auto_provision_order, get_server_adapter, NativeCloudEngineAdapter, generate_strong_password, test_server_connection
 from lifecycle import run_lifecycle_checks, reactivate_account
 from registrar import DomainRegistrarClient
 
